@@ -1,0 +1,19 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+version = '1.0'
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Portalsammler', 'Implementation-Version': version
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.seleniumhq.selenium:selenium-java:2.37.1', 'org.bouncycastle:bcprov-jdk15on:1.49'
+    testCompile 'junit:junit:4.+'
+}
+
