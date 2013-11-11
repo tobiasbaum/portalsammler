@@ -16,6 +16,11 @@ public abstract class DocumentSourceFactory {
         return this.name;
     }
 
+    @Override
+    public String toString() {
+        return this.name;
+    }
+
     public abstract List<SettingKey> getNeededSettings();
 
     public abstract DocumentSource create(String id);

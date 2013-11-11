@@ -42,4 +42,9 @@ public class FileBasedStorage implements StorageLayer {
         return this.dir.toString();
     }
 
+    @Override
+    public boolean fileExists(String name) {
+        return new File(this.dir, name).exists();
+    }
+
 }

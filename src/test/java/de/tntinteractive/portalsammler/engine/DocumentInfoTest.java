@@ -10,7 +10,7 @@ public class DocumentInfoTest {
 
     @Test
     public void testAddKeywords() {
-        final DocumentInfo i = DocumentInfo.create("quelle");
+        final DocumentInfo i = DocumentInfo.create("quelle", DocumentFormat.PDF);
         i.addKeywords(" asdf  \njklö 123 ");
         i.addKeywords("456");
         i.addKeywords("78\r9");
@@ -21,7 +21,7 @@ public class DocumentInfoTest {
     @Test
     public void testAsStringAndParse() {
         checkAsStringAndParse("", 0, "");
-        final DocumentInfo i = DocumentInfo.create("quelle");
+        final DocumentInfo i = DocumentInfo.create("quelle", DocumentFormat.PDF);
         i.addKeywords(" asdf  \njklö 123 ");
         i.addKeywords("456");
         i.addKeywords("78\r9");
@@ -30,7 +30,7 @@ public class DocumentInfoTest {
     }
 
     private static void checkAsStringAndParse(String source, long date, String keywords) {
-        final DocumentInfo d1 = DocumentInfo.create(source);
+        final DocumentInfo d1 = DocumentInfo.create(source, DocumentFormat.PDF);
         d1.setDate(new Date(date));
         d1.addKeywords(keywords);
         final String serialized = d1.asString();

@@ -1,17 +1,18 @@
 package de.tntinteractive.portalsammler.engine;
 
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
+import java.util.zip.InflaterOutputStream;
 
-import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bouncycastle.crypto.io.CipherInputStream;
 import org.bouncycastle.crypto.io.CipherOutputStream;
@@ -21,12 +22,16 @@ public class SecureStore {
     private final StorageLayer storage;
     private final SecureRandom srand;
     private final byte[] key;
+    private final int sizeLimit = 1024 * 1024;
 
     private final Settings settings = new Settings();
     private int settingSalt;
 
     private final DocumentIndex index = new DocumentIndex();
     private int indexSalt;
+
+    private ByteArrayOutputStream currentOutputBuffer;
+    private int currentFileIndex;
 
 
     private SecureStore(StorageLayer storage, SecureRandom srand, byte[] key) {
@@ -38,6 +43,8 @@ public class SecureStore {
     public static SecureStore createEmpty(StorageLayer storage, SecureRandom srand, byte[] key) {
         final SecureStore ret = new SecureStore(storage, srand, key);
         ret.settingSalt = ret.srand.nextInt();
+        ret.currentOutputBuffer = new ByteArrayOutputStream();
+        ret.currentFileIndex = 1;
         return ret;
     }
 
@@ -48,7 +55,23 @@ public class SecureStore {
 
         readSettings(storage, srand, key, ret);
         readIndex(storage, srand, key, ret);
+        ret.setCurrentFileIndexToHighestKnown();
+        ret.currentOutputBuffer = new ByteArrayOutputStream();
+        if (storage.fileExists(ret.getCurrentFilename())) {
+            ret.currentOutputBuffer.write(ret.readAndDecrypt(ret.getCurrentFilename()));
+        } else {
+            writeInt(ret.currentOutputBuffer, srand.nextInt());
+        }
+        ret.checkCurrentBufferSize();
         return ret;
+    }
+
+    private void setCurrentFileIndexToHighestKnown() {
+        this.currentFileIndex = 1;
+        do {
+            this.currentFileIndex++;
+        } while (this.storage.fileExists(this.getCurrentFilename()));
+        this.currentFileIndex--;
     }
 
     private static void readSettings(final StorageLayer storage, SecureRandom srand, byte[] key, final SecureStore ret)
@@ -104,11 +127,90 @@ public class SecureStore {
         return this.settings;
     }
 
+    public boolean containsDocument(DocumentInfo info) {
+        return this.index.getAllDocuments().contains(info);
+    }
+
     public void storeDocument(DocumentInfo metadata, byte[] content) throws IOException {
-        System.out.println("Storing " + metadata.getKeywords());
-        final File file = new File("C:\\Temp\\secureStore\\", metadata.getKeywords() + ".pdf");
-        FileUtils.writeByteArrayToFile(file, content);
-        this.index.putDocument(metadata, Collections.singletonMap("f", file.toString()));
+        final Map<String, String> fileOffset = this.saveContent(content);
+        this.index.putDocument(metadata, fileOffset);
+    }
+
+    private Map<String, String> saveContent(byte[] content) throws IOException {
+        this.checkCurrentBufferSize();
+
+        final int offset = this.currentOutputBuffer.size();
+        final byte[] compressedContent = this.compress(content);
+        this.currentOutputBuffer.write(compressedContent);
+
+        final Map<String, String> fileOffset = new HashMap<String, String>();
+        fileOffset.put("f", this.getCurrentFilename());
+        fileOffset.put("o", Integer.toString(offset));
+        fileOffset.put("s", Integer.toString(compressedContent.length));
+        this.saveCurrentBuffer();
+
+        return fileOffset;
+    }
+
+    private void checkCurrentBufferSize() throws IOException {
+        if (this.currentOutputBuffer.size() > this.sizeLimit) {
+            this.startNewOutputBuffer();
+        }
+    }
+
+    private void saveCurrentBuffer() throws IOException {
+        final OutputStream out = this.storage.openOutputStream(this.getCurrentFilename());
+        try {
+            final CipherOutputStream cipher = CryptoHelper.createAesEncryptStream(out, this.key, this.srand);
+            cipher.write(this.currentOutputBuffer.toByteArray());
+            cipher.close();
+        } finally {
+            out.close();
+        }
+    }
+
+    private void startNewOutputBuffer() throws IOException {
+        this.currentOutputBuffer = new ByteArrayOutputStream();
+        writeInt(this.currentOutputBuffer, this.srand.nextInt());
+        this.currentFileIndex++;
+    }
+
+    private String getCurrentFilename() {
+        return String.format("data.%08d", this.currentFileIndex);
+    }
+
+    private byte[] compress(byte[] content) throws IOException {
+        final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        final DeflaterOutputStream deflate = new DeflaterOutputStream(buffer);
+        deflate.write(content);
+        deflate.close();
+        return buffer.toByteArray();
+    }
+
+    public byte[] getDocument(DocumentInfo metadata) throws IOException {
+        final Map<String, String> pointer = this.index.getFilePosition(metadata);
+        final byte[] buffer = this.readAndDecrypt(pointer.get("f"));
+        final int offset = Integer.parseInt(pointer.get("o"));
+        final int size = Integer.parseInt(pointer.get("s"));
+
+        final ByteArrayOutputStream result = new ByteArrayOutputStream();
+        final InflaterOutputStream inflate = new InflaterOutputStream(result);
+        inflate.write(buffer, offset, size);
+        inflate.close();
+
+        return result.toByteArray();
+    }
+
+    private byte[] readAndDecrypt(String filename) throws IOException {
+        final InputStream input = this.storage.openInputStream(filename);
+        try {
+            final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            final CipherInputStream cipher = CryptoHelper.createAesDecryptStream(input, this.key, this.srand);
+            IOUtils.copy(cipher, buffer);
+            return buffer.toByteArray();
+        } finally {
+            input.close();
+        }
     }
 
     /**

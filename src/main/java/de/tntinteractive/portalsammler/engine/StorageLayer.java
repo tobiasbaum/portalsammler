@@ -14,4 +14,6 @@ public interface StorageLayer {
 
     public abstract void create() throws IOException;
 
+    public abstract boolean fileExists(String name);
+
 }

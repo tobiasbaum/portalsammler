@@ -2,6 +2,7 @@ package de.tntinteractive.portalsammler.gui;
 
 import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.sources.DocumentSourceFactory;
+import de.tntinteractive.portalsammler.sources.HanVBFactoryV1;
 import de.tntinteractive.portalsammler.sources.IngDibaFactoryV1;
 
 public class SourceFactories {
@@ -10,7 +11,8 @@ public class SourceFactories {
 
     public static DocumentSourceFactory[] getFactories() {
         return new DocumentSourceFactory[] {
-                new IngDibaFactoryV1()
+                new IngDibaFactoryV1(),
+                new HanVBFactoryV1()
         };
     }
 

@@ -13,7 +13,9 @@ repositories {
 }
 
 dependencies {
-    compile 'org.seleniumhq.selenium:selenium-java:2.37.1', 'org.bouncycastle:bcprov-jdk15on:1.49'
+    compile 'org.seleniumhq.selenium:selenium-java:2.37.1', 
+            'org.bouncycastle:bcprov-jdk15on:1.49',
+            'org.swinglabs:pdf-renderer:1.0.5'
     testCompile 'junit:junit:4.+'
 }
 

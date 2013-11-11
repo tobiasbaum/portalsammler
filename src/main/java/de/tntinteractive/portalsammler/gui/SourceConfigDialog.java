@@ -140,6 +140,8 @@ public class SourceConfigDialog extends JDialog {
             this.settingPanel.add(input, gbc(1, i));
             i++;
         }
+
+        this.validate();
     }
 
     private void handleSettingChanged(SourceSettings settings, JTextField input) {

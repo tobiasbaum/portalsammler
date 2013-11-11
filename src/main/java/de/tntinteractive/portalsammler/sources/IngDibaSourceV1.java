@@ -5,16 +5,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import de.tntinteractive.portalsammler.engine.ByPartialButtonText;
+import de.tntinteractive.portalsammler.engine.DocumentFormat;
 import de.tntinteractive.portalsammler.engine.DocumentInfo;
 import de.tntinteractive.portalsammler.engine.FileDownloader;
 import de.tntinteractive.portalsammler.engine.SecureStore;
@@ -27,20 +25,13 @@ public class IngDibaSourceV1 extends DocumentSource {
     static final SettingKey PASSWORD = new SettingKey("Passwort");
     static final SettingKey CODE = new SettingKey("Secure Code");
 
-    private static final int WAIT_TIME = 30;
-
-    private final String id;
-
     public IngDibaSourceV1(String id) {
-        this.id = id;
+        super(id);
     }
 
     @Override
     public void poll(SourceSettings settings, SecureStore store) throws Exception {
-        final WebDriver driver = new HtmlUnitDriver(true);
-
-        driver.manage().timeouts().implicitlyWait(WAIT_TIME, TimeUnit.SECONDS);
-        driver.get("https://banking.ing-diba.de/app/login");
+        final WebDriver driver = this.createDriver("https://banking.ing-diba.de/app/login");
 
         final WebElement userField = driver.findElement(By.name("view:kontonummer:border:border_body:kontonummer"));
         userField.sendKeys(settings.get(USER));
@@ -50,7 +41,7 @@ public class IngDibaSourceV1 extends DocumentSource {
 
         passwordField.submit();
 
-        (new WebDriverWait(driver, WAIT_TIME)).until(ExpectedConditions.presenceOfElementLocated(By.className("dbkpBoard")));
+        waitForPresence(driver, By.className("dbkpBoard"));
 
         final List<Integer> missingValues = new ArrayList<Integer>();
         for (final WebElement possibleKeyInput : driver.findElements(By.tagName("input"))) {
@@ -73,7 +64,7 @@ public class IngDibaSourceV1 extends DocumentSource {
         final WebElement login = driver.findElement(byPartialButtonText("Anmelden"));
         login.click();
 
-        (new WebDriverWait(driver, WAIT_TIME)).until(ExpectedConditions.presenceOfElementLocated(By.partialLinkText("Post-Box")));
+        waitForPresence(driver, By.partialLinkText("Post-Box"));
         clickLink(driver, "Post-Box");
 
         (new WebDriverWait(driver, WAIT_TIME)).until(ExpectedConditions.invisibilityOfElementLocated(By.id("busy")));
@@ -86,7 +77,7 @@ public class IngDibaSourceV1 extends DocumentSource {
         try {
             final FileDownloader d = new FileDownloader(driver);
             for (final WebElement row : driver.findElements(By.tagName("tbody"))) {
-                final DocumentInfo metadata = DocumentInfo.create(this.id);
+                final DocumentInfo metadata = DocumentInfo.create(this.getId(), DocumentFormat.PDF);
 
                 for (final WebElement cell : row.findElements(By.tagName("td"))) {
                     final String text = cell.getText();
@@ -97,10 +88,12 @@ public class IngDibaSourceV1 extends DocumentSource {
                     }
                 }
 
-                final WebElement link = row.findElement(By.tagName("a"));
-                System.out.println(link.getAttribute("id") + ", " + link.getAttribute("href"));
-                final byte[] file = d.downloadFile(link);
-                store.storeDocument(metadata, file);
+                if (!store.containsDocument(metadata)) {
+                    final WebElement link = row.findElement(By.tagName("a"));
+                    System.out.println(link.getAttribute("id") + ", " + link.getAttribute("href"));
+                    final byte[] file = d.downloadFile(link);
+                    store.storeDocument(metadata, file);
+                }
             }
 
         } finally {
@@ -114,23 +107,6 @@ public class IngDibaSourceV1 extends DocumentSource {
 
     private boolean isDate(String text) {
         return text.matches("[0-3][0-9]\\.[0-1][0-9]\\.[0-9][0-9][0-9][0-9]");
-    }
-
-    private static boolean startsWith(String name, String prefix) {
-        return name != null && name.startsWith(prefix);
-    }
-
-    private static void clickLink(final WebDriver driver, String partialText) {
-        final WebElement link = driver.findElement(By.partialLinkText(partialText));
-        link.click();
-    }
-
-    private static By byPartialButtonText(String text) {
-        return new ByPartialButtonText(text);
-    }
-
-    public String getId() {
-        return this.id;
     }
 
 }

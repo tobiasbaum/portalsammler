@@ -74,4 +74,9 @@ public class StubStorage implements StorageLayer {
         this.exists = true;
     }
 
+    @Override
+    public boolean fileExists(String name) {
+        return this.exists && this.files.containsKey(name);
+    }
+
 }
