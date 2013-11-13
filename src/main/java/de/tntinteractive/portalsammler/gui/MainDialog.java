@@ -31,17 +31,21 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.WindowConstants;
 import javax.swing.table.AbstractTableModel;
 
+import com.jgoodies.forms.builder.ButtonBarBuilder;
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.CC;
+import com.jgoodies.forms.layout.FormLayout;
+
+import de.tntinteractive.portalsammler.engine.DocumentFilter;
+import de.tntinteractive.portalsammler.engine.DocumentFilterParser;
 import de.tntinteractive.portalsammler.engine.DocumentInfo;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.ShouldNotHappenException;
@@ -53,6 +57,8 @@ public class MainDialog extends JFrame {
     private final Gui gui;
     private final SecureStore store;
     private final JTable table;
+    private final JTextField filterField;
+    private DocumentFilter currentFilter = DocumentFilter.NO_FILTER;
 
     public MainDialog(Gui gui, SecureStore store) {
         this.setTitle("Portalsammler");
@@ -61,16 +67,25 @@ public class MainDialog extends JFrame {
         this.gui = gui;
         this.store = store;
 
-        final JPanel filterPanel = new JPanel();
-        filterPanel.setLayout(new BoxLayout(filterPanel, BoxLayout.LINE_AXIS));
-        filterPanel.add(new JLabel("Filter"));
-        filterPanel.add(new JTextField());
-        this.add(filterPanel, BorderLayout.NORTH);
+        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+
+        this.filterField = new JTextField();
+        this.filterField.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MainDialog.this.filter();
+            }
+        });
+
+        final PanelBuilder fpb = new PanelBuilder(new FormLayout(
+                "right:pref, 4dlu, fill:pref:grow", "p"));
+        fpb.addLabel("&Filter", CC.xy(1, 1));
+        fpb.add(this.filterField, CC.xy(3, 1));
 
         this.table = new JTable();
-        this.table.setCellSelectionEnabled(false);
+        this.table.setRowSelectionAllowed(true);
         this.add(new JScrollPane(this.table), BorderLayout.CENTER);
-        this.fillTable(store.getIndex().getAllDocuments());
+        this.fillTable();
         this.table.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent me) {
@@ -83,13 +98,22 @@ public class MainDialog extends JFrame {
             }
         });
 
-        final JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.LINE_AXIS));
-        buttonPanel.add(this.createConfigButton());
-        buttonPanel.add(this.createPollButton());
-        this.add(buttonPanel, BorderLayout.SOUTH);
+        final ButtonBarBuilder bbb = new ButtonBarBuilder();
+        bbb.addButton(this.createConfigButton(), this.createPollButton());
 
-        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        final PanelBuilder builder = new PanelBuilder(new FormLayout(
+                "4dlu, fill:pref:grow, 4dlu",
+                "4dlu, p, 4dlu, fill:50dlu:grow, 4dlu, p, 4dlu"));
+        builder.add(fpb.getPanel(), CC.xy(2, 2));
+        builder.add(new JScrollPane(this.table), CC.xy(2, 4));
+        builder.add(bbb.getPanel(), CC.xy(2, 6));
+
+        this.setContentPane(builder.getPanel());
+    }
+
+    private void filter() {
+        this.currentFilter = DocumentFilterParser.parse(this.filterField.getText());
+        this.fillTable();
     }
 
     private void openDocument(int row) {
@@ -153,8 +177,15 @@ public class MainDialog extends JFrame {
 
     }
 
-    private void fillTable(Collection<DocumentInfo> documents) {
-        this.table.setModel(new DocumentTableModel(documents));
+    private void fillTable() {
+        final Collection<DocumentInfo> allDocuments = this.store.getIndex().getAllDocuments();
+        final List<DocumentInfo> filteredDocuments = new ArrayList<DocumentInfo>();
+        for (final DocumentInfo d : allDocuments) {
+            if (this.currentFilter.shallShow(d)) {
+                filteredDocuments.add(d);
+            }
+        }
+        this.table.setModel(new DocumentTableModel(filteredDocuments));
     }
 
     private JButton createConfigButton() {
@@ -197,7 +228,7 @@ public class MainDialog extends JFrame {
         } catch (final GeneralSecurityException e) {
             gui.showError(e);
         }
-        this.fillTable(this.store.getIndex().getAllDocuments());
+        this.fillTable();
     }
 
 }

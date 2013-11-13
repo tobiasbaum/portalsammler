@@ -64,7 +64,7 @@ public class Gui implements UserInteraction {
             new PDFViewer(metadata.getKeywords(), pdfFile).setVisible(true);
             break;
         case TEXT:
-            JOptionPane.showMessageDialog(null, new String(content, "UTF-8"));
+            new TextViewer(metadata.getKeywords(), new String(content, "UTF-8")).setVisible(true);
             break;
         default:
             throw new ShouldNotHappenException(metadata.getFormat().toString());

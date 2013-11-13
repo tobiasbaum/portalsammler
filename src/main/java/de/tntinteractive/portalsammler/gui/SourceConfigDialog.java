@@ -18,15 +18,11 @@
  */
 package de.tntinteractive.portalsammler.gui;
 
-import java.awt.BorderLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -36,6 +32,12 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+
+import com.jgoodies.forms.builder.ButtonBarBuilder;
+import com.jgoodies.forms.builder.DefaultFormBuilder;
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.CC;
+import com.jgoodies.forms.layout.FormLayout;
 
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SettingKey;
@@ -55,16 +57,11 @@ public class SourceConfigDialog extends JDialog {
 
     public SourceConfigDialog(Gui gui, SecureStore store) {
         this.setTitle("Quellen-Konfiguration");
-        this.setLayout(new BorderLayout());
-        this.setSize(400, 400);
         this.setModal(true);
 
         this.gui = gui;
         this.store = store;
         this.workingCopy = this.store.getSettings().deepClone();
-
-        final JPanel upperPanel = new JPanel();
-        upperPanel.setLayout(new BoxLayout(upperPanel, BoxLayout.LINE_AXIS));
 
         this.idCombo = new JComboBox<String>();
         this.idCombo.addActionListener(new ActionListener() {
@@ -73,21 +70,29 @@ public class SourceConfigDialog extends JDialog {
                 SourceConfigDialog.this.updateSettingPanel();
             }
         });
-        upperPanel.add(this.idCombo);
-        upperPanel.add(this.createNewButton());
-        this.add(upperPanel, BorderLayout.NORTH);
+
+        final PanelBuilder upb = new PanelBuilder(new FormLayout(
+                "fill:p:grow, 4dlu, p", "p"));
+        upb.add(this.idCombo, CC.xy(1, 1));
+        upb.add(this.createNewButton(), CC.xy(3, 1));
 
         this.settingPanel = new JPanel();
-        this.settingPanel.setLayout(new GridBagLayout());
-        this.add(this.settingPanel, BorderLayout.CENTER);
 
-        final JPanel lowerPanel = new JPanel();
-        lowerPanel.setLayout(new BoxLayout(lowerPanel, BoxLayout.LINE_AXIS));
-        lowerPanel.add(this.createOkButton());
-        lowerPanel.add(this.createCancelButton());
-        this.add(lowerPanel, BorderLayout.SOUTH);
+        final ButtonBarBuilder bbb = new ButtonBarBuilder();
+        bbb.addGlue();
+        bbb.addButton(this.createOkButton(), this.createCancelButton());
 
         this.updateIdCombo();
+
+        final PanelBuilder builder = new PanelBuilder(new FormLayout(
+                "4dlu, fill:p:grow, 4dlu",
+                "4dlu, p, 4dlu, fill:p:grow, 4dlu, p, 4dlu"));
+        builder.add(upb.getPanel(), CC.xy(2, 2));
+        builder.add(this.settingPanel, CC.xy(2, 4));
+        builder.add(bbb.getPanel(), CC.xy(2, 6));
+
+        this.setContentPane(builder.getPanel());
+        this.pack();
     }
 
     private JButton createOkButton() {
@@ -133,7 +138,8 @@ public class SourceConfigDialog extends JDialog {
         final SourceSettings settings = this.workingCopy.getSettings(id);
         final String type = settings.get(SourceFactories.TYPE);
         final DocumentSourceFactory factory = SourceFactories.getByName(type);
-        int i = 0;
+        final DefaultFormBuilder formBuilder = new DefaultFormBuilder(
+                new FormLayout("right:p, 4dlu, fill:p:grow"), this.settingPanel);
         for (final SettingKey key : factory.getNeededSettings()) {
             final JLabel label = new JLabel(key.getKeyString());
             final String value = settings.getOrCreate(key);
@@ -154,27 +160,17 @@ public class SourceConfigDialog extends JDialog {
                 }
             });
 
-            this.settingPanel.add(label, gbc(0, i));
-            this.settingPanel.add(input, gbc(1, i));
-            i++;
+            formBuilder.append(label, input);
         }
 
-        this.validate();
+        this.settingPanel.validate();
+        this.settingPanel.repaint();
     }
 
     private void handleSettingChanged(SourceSettings settings, JTextField input) {
         final String text = input.getText();
         final String key = input.getName();
         settings.set(new SettingKey(key), text);
-    }
-
-    private static GridBagConstraints gbc(int x, int y) {
-        final GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridx = x;
-        gbc.gridy = y;
-        gbc.weightx = 1;
-        return gbc;
     }
 
     private void updateIdCombo() {

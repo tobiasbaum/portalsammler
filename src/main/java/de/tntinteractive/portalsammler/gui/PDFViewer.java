@@ -18,21 +18,22 @@
  */
 package de.tntinteractive.portalsammler.gui;
 
-import java.awt.BorderLayout;
 import java.awt.Image;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Rectangle2D;
 
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
+import com.jgoodies.forms.builder.ButtonBarBuilder;
+import com.jgoodies.forms.builder.PanelBuilder;
+import com.jgoodies.forms.factories.CC;
+import com.jgoodies.forms.layout.FormLayout;
 import com.sun.pdfview.PDFFile;
 import com.sun.pdfview.PDFPage;
 
@@ -51,14 +52,10 @@ public class PDFViewer extends JFrame {
         this.pdfFile = pdfFile;
         this.currentPage = 1;
 
-        this.setLayout(new BorderLayout());
-
         this.contentLabel = new JLabel();
         this.contentLabel.setVerticalAlignment(JLabel.TOP);
         final JScrollPane scrollPane = new JScrollPane(this.contentLabel);
-        this.add(scrollPane, BorderLayout.CENTER);
 
-        this.posLabel = new JLabel();
         final JButton backwardButton = new JButton("<");
         backwardButton.addActionListener(new ActionListener() {
             @Override
@@ -66,6 +63,7 @@ public class PDFViewer extends JFrame {
                 PDFViewer.this.backward();
             }
         });
+        this.posLabel = new JLabel();
         final JButton forwardButton = new JButton(">");
         forwardButton.addActionListener(new ActionListener() {
             @Override
@@ -74,14 +72,17 @@ public class PDFViewer extends JFrame {
             }
         });
 
-        final JPanel navigationPanel = new JPanel();
-        navigationPanel.setLayout(new BoxLayout(navigationPanel, BoxLayout.LINE_AXIS));
-        navigationPanel.add(backwardButton);
-        navigationPanel.add(this.posLabel);
-        navigationPanel.add(forwardButton);
+        final ButtonBarBuilder bbb = new ButtonBarBuilder();
+        bbb.addButton(backwardButton, this.posLabel, forwardButton);
 
         this.showCurrentPage();
-        this.add(navigationPanel, BorderLayout.SOUTH);
+
+        final PanelBuilder builder = new PanelBuilder(new FormLayout(
+                "4dlu, p, 4dlu",
+                "4dlu, fill:300dlu:grow, 4dlu, p, 4dlu"));
+        builder.add(scrollPane, CC.xy(2, 2));
+        builder.add(bbb.getPanel(), CC.xy(2, 4));
+        this.setContentPane(builder.getPanel());
 
         this.pack();
     }
