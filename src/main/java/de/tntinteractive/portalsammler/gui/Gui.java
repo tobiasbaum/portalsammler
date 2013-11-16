@@ -39,7 +39,7 @@ public class Gui implements UserInteraction {
 
     @Override
     public void showGeneratedPassword(String key) {
-        JOptionPane.showInputDialog("New password generated:", key);
+        new GeneratedPasswordDialog(this, key).setVisible(true);
     }
 
     @Override

@@ -16,7 +16,9 @@ dependencies {
     compile 'org.seleniumhq.selenium:selenium-java:2.37.1', 
             'org.bouncycastle:bcprov-jdk15on:1.49',
             'org.swinglabs:pdf-renderer:1.0.5',
-            'com.jgoodies:jgoodies-forms:1.6.0'
+            'com.jgoodies:jgoodies-forms:1.6.0',
+            'com.google.zxing:core:2.2',
+            'com.google.zxing:javase:2.2'
     testCompile 'junit:junit:4.+'
 }
 
