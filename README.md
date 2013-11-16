@@ -18,8 +18,11 @@ zu erwarten ist, dass die proprietären Portale in näherer Zukunft an Bedeutung
 Features
 --------
 
-- Sicherheit
+- zentrale Dokumentenverwaltung
+ - nur ein Anlaufpunkt für alle Dokumente
  - alle Dokumente werden lokal auf deinem Rechner abgelegt, d.h. du hast die volle Kontrolle
+ - lokales Suchen und Filtern von Dokumenten
+- Sicherheit
  - alle Daten sind verschlüsselt (AES-256)
  - die Daten liegen niemals entschlüsselt auf Platte vor, außer dies ist explizit gewünscht
 - Anbindung diverser Portale
