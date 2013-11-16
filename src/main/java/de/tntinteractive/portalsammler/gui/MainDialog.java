@@ -54,6 +54,8 @@ import de.tntinteractive.portalsammler.sources.DocumentSourceFactory;
 
 public class MainDialog extends JFrame {
 
+    private static final long serialVersionUID = -2309663260423505246L;
+
     private final Gui gui;
     private final SecureStore store;
     private final JTable table;

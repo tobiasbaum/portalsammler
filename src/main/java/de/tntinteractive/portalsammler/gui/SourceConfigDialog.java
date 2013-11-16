@@ -47,6 +47,8 @@ import de.tntinteractive.portalsammler.sources.DocumentSourceFactory;
 
 public class SourceConfigDialog extends JDialog {
 
+    private static final long serialVersionUID = -5863672998709207556L;
+
     private final Gui gui;
     private final SecureStore store;
     private final Settings workingCopy;
