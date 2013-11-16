@@ -19,13 +19,13 @@ Features
 --------
 
 - Sicherheit
--- alle Dokumente werden lokal auf deinem Rechner abgelegt, d.h. du hast die volle Kontrolle
--- alle Daten sind verschlüsselt (AES-256)
--- die Daten liegen niemals entschlüsselt auf Platte vor, außer dies ist explizit gewünscht
+ - alle Dokumente werden lokal auf deinem Rechner abgelegt, d.h. du hast die volle Kontrolle
+ - alle Daten sind verschlüsselt (AES-256)
+ - die Daten liegen niemals entschlüsselt auf Platte vor, außer dies ist explizit gewünscht
 - Anbindung diverser Portale
--- die Portale werden durch Fernsteuerung der Webseiten angebunden, d.h. jedes Portal kann potentiell angebunden werden
--- wenn eine Portal-Anbindung fehlt: Das Hinzufügen einer neuen Anbindung ist relativ einfach
+ - die Portale werden durch Fernsteuerung der Webseiten angebunden, d.h. jedes Portal kann potentiell angebunden werden
+ - wenn eine Portal-Anbindung fehlt: Das Hinzufügen einer neuen Anbindung ist relativ einfach
 - einfache Benutzung
--- es wird automatisch ein sicherer Schlüssel generiert
--- der Schlüssel kann als QR-Code ausgedruckt werden, damit er nicht gemerkt werden muss
--- alle Daten liegen verschlüsselt in einem einfachen Verzeichnis vor und können deshalb z.B. problemlos in der Cloud gesichert werden
+ - es wird automatisch ein sicherer Schlüssel generiert
+ - der Schlüssel kann als QR-Code ausgedruckt werden, damit er nicht gemerkt werden muss
+ - alle Daten liegen verschlüsselt in einem einfachen Verzeichnis vor und können deshalb z.B. problemlos in der Cloud gesichert werden
