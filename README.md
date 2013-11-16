@@ -5,7 +5,8 @@ Programm zum Abgreifen und sicheren lokalen Ablegen von Dokumenten (Kontoauszüg
 aus div. Portalen (Online-Banking, Online-Rechnung, ...).
 
 
-== Motivation ==
+Motivation
+----------
 
 Dokumente wie Rechnungen, Kontoauszüge und Depotabrechnungen werden zunehmend Online bereitgestellt.
 Leider setzen viele Anbieter dabei auf proprietäre Portale, sodass ein Kunde sich auf vielen Webseiten
@@ -14,7 +15,8 @@ die Dokumenten auf den Portalen häufig Haltefristen, nach denen sie automatisch
 zu erwarten ist, dass die proprietären Portale in näherer Zukunft an Bedeutung verlieren werden, bietet
 "Portalsammler" eine Möglichkeit, aus dieser Situation das Beste zu machen.
 
-== Features ==
+Features
+--------
 
 - Sicherheit
 -- alle Dokumente werden lokal auf deinem Rechner abgelegt, d.h. du hast die volle Kontrolle
