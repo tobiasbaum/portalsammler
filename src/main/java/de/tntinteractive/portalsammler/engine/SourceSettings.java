@@ -23,6 +23,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import de.tntinteractive.portalsammler.gui.UserInteraction;
+
 /**
  * Verwaltet die Einstellungen zu einer Quelle.
  */
@@ -41,10 +43,10 @@ public class SourceSettings implements Serializable {
         }
     }
 
-    public String get(SettingKey key) {
+    public String get(SettingKey key, UserInteraction gui) {
         final String ret = this.values.get(key);
-        if (ret == null) {
-            throw new IllegalArgumentException("Es wurde kein Wert für den Parameter " + key + " angegeben.");
+        if (ret == null || ret.isEmpty()) {
+            return gui.askForSetting(key);
         }
         return ret;
     }

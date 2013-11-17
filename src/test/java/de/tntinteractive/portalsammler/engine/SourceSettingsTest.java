@@ -29,7 +29,7 @@ public class SourceSettingsTest {
         final SourceSettings s = new SourceSettings();
         final SettingKey key = new SettingKey("a");
         s.set(key, "123");
-        assertEquals("123", s.get(key));
+        assertEquals("123", s.get(key, new FailAllGui()));
     }
 
     @Test
@@ -39,8 +39,8 @@ public class SourceSettingsTest {
         final SettingKey key2 = new SettingKey("b");
         s.set(key1, "123");
         s.set(key2, "abc");
-        assertEquals("123", s.get(key1));
-        assertEquals("abc", s.get(key2));
+        assertEquals("123", s.get(key1, new FailAllGui()));
+        assertEquals("abc", s.get(key2, new FailAllGui()));
     }
 
     @Test
@@ -49,7 +49,28 @@ public class SourceSettingsTest {
         final SettingKey key = new SettingKey("a");
         s.set(key, "123");
         s.set(key, "456");
-        assertEquals("456", s.get(key));
+        assertEquals("456", s.get(key, new FailAllGui()));
     }
 
+    private static final class MissingValueStubGui extends FailAllGui {
+        @Override
+        public String askForSetting(SettingKey key) {
+            return key.getKeyString() + "123";
+        }
+    }
+
+    @Test
+    public void testMissingValueLeadsToGuiInteraction() {
+        final SourceSettings s = new SourceSettings();
+        final SettingKey key = new SettingKey("a");
+        assertEquals("a123", s.get(key, new MissingValueStubGui()));
+    }
+
+    @Test
+    public void testEmptyValueLeadsToGuiInteraction() {
+        final SourceSettings s = new SourceSettings();
+        final SettingKey key = new SettingKey("b");
+        s.set(key, "");
+        assertEquals("b123", s.get(key, new MissingValueStubGui()));
+    }
 }

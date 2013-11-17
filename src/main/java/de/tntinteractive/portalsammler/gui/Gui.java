@@ -29,6 +29,7 @@ import com.sun.pdfview.PDFFile;
 
 import de.tntinteractive.portalsammler.engine.DocumentInfo;
 import de.tntinteractive.portalsammler.engine.SecureStore;
+import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.engine.ShouldNotHappenException;
 import de.tntinteractive.portalsammler.engine.StorageLayer;
 
@@ -88,5 +89,10 @@ public class Gui implements UserInteraction {
             throw new ShouldNotHappenException(metadata.getFormat().toString());
         }
 
+    }
+
+    @Override
+    public String askForSetting(SettingKey key) {
+        return JOptionPane.showInputDialog("Bitte geben Sie den Wert für einen fehlenden Parameter ein: " + key.getKeyString());
     }
 }

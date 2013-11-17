@@ -34,6 +34,7 @@ import de.tntinteractive.portalsammler.engine.FileDownloader;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
+import de.tntinteractive.portalsammler.gui.UserInteraction;
 
 public class IngDibaSourceV1 extends DocumentSource {
 
@@ -46,14 +47,15 @@ public class IngDibaSourceV1 extends DocumentSource {
     }
 
     @Override
-    public Pair<Integer, Integer> poll(SourceSettings settings, SecureStore store) throws Exception {
+    public Pair<Integer, Integer> poll(SourceSettings settings, UserInteraction gui,
+            SecureStore store) throws Exception {
         final WebDriver driver = this.createDriver("https://banking.ing-diba.de/app/login");
 
         final WebElement userField = driver.findElement(By.name("view:kontonummer:border:border_body:kontonummer"));
-        userField.sendKeys(settings.get(USER));
+        userField.sendKeys(settings.get(USER, gui));
 
         final WebElement passwordField = driver.findElement(By.name("view:pin:border:border_body:pin"));
-        passwordField.sendKeys(settings.get(PASSWORD));
+        passwordField.sendKeys(settings.get(PASSWORD, gui));
 
         passwordField.submit();
 
@@ -69,7 +71,7 @@ public class IngDibaSourceV1 extends DocumentSource {
             }
         }
 
-        final String code = settings.get(CODE);
+        final String code = settings.get(CODE, gui);
 
         for (final Integer missing : missingValues) {
             final String number = Character.toString(code.charAt(missing));

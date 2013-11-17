@@ -40,6 +40,7 @@ import com.gargoylesoftware.htmlunit.RefreshHandler;
 import de.tntinteractive.portalsammler.engine.ByPartialButtonText;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
+import de.tntinteractive.portalsammler.gui.UserInteraction;
 
 public abstract class DocumentSource {
 
@@ -60,12 +61,11 @@ public abstract class DocumentSource {
      * übergebenen {@link SecureStore}. Wenn ein Dokument bereits im {@link SecureStore} vorliegt,
      * wird es nicht erneut heruntergeladen.
      *
-     * @param settings
-     * @param store
      * @return Die erste Zahl ist die Anzahl neuer Dokumente, die zweite die untersuchter und schon bekannter.
      *          D.h. die Summe der beiden Zahlen ergibt die Gesamtanzahl an untersuchten Dokumenten.
      */
-    public abstract Pair<Integer, Integer> poll(SourceSettings settings, SecureStore store) throws Exception;
+    public abstract Pair<Integer, Integer> poll(SourceSettings settings, UserInteraction gui,
+            SecureStore store) throws Exception;
 
     private static final class AllOrNothingRefreshHandler implements RefreshHandler {
 

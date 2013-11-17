@@ -296,9 +296,9 @@ public class MainDialog extends JFrame {
 
     private Pair<Integer, Integer> pollSingleSource(Settings settings, String id) {
         final SourceSettings s = settings.getSettings(id);
-        final DocumentSourceFactory factory = SourceFactories.getByName(s.get(SourceFactories.TYPE));
+        final DocumentSourceFactory factory = SourceFactories.getByName(s.get(SourceFactories.TYPE, this.gui));
         try {
-            return factory.create(id).poll(s, this.store);
+            return factory.create(id).poll(s, this.gui, this.store);
         } catch (final Exception e) {
             this.gui.showError(e);
             return null;

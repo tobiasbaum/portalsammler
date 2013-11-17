@@ -19,6 +19,7 @@
 package de.tntinteractive.portalsammler.gui;
 
 import de.tntinteractive.portalsammler.engine.SecureStore;
+import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.engine.StorageLayer;
 
 public interface UserInteraction {
@@ -30,5 +31,7 @@ public interface UserInteraction {
     public abstract void showError(Throwable e);
 
     public abstract void showMainGui(SecureStore store);
+
+    public abstract String askForSetting(SettingKey key);
 
 }

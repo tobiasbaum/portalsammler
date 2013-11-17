@@ -35,6 +35,7 @@ import de.tntinteractive.portalsammler.engine.DocumentInfo;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
+import de.tntinteractive.portalsammler.gui.UserInteraction;
 
 public class HanVBSourceV1 extends DocumentSource {
 
@@ -46,14 +47,14 @@ public class HanVBSourceV1 extends DocumentSource {
     }
 
     @Override
-    public Pair<Integer, Integer> poll(SourceSettings settings, SecureStore store) throws Exception {
+    public Pair<Integer, Integer> poll(SourceSettings settings, UserInteraction gui, SecureStore store) throws Exception {
         final WebDriver driver = this.createDriver("https://www.hanvb.de/ptlweb/WebPortal?bankid=0744");
 
         final WebElement userField = driver.findElement(By.id("vrkennungalias"));
-        userField.sendKeys(settings.get(USER));
+        userField.sendKeys(settings.get(USER, gui));
 
         final WebElement passwordField = driver.findElement(By.id("pin"));
-        passwordField.sendKeys(settings.get(PASSWORD));
+        passwordField.sendKeys(settings.get(PASSWORD, gui));
 
         passwordField.submit();
 

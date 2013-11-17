@@ -31,6 +31,7 @@ import de.tntinteractive.portalsammler.engine.FileDownloader;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
+import de.tntinteractive.portalsammler.gui.UserInteraction;
 
 public class MlpSourceV1 extends DocumentSource {
 
@@ -42,14 +43,14 @@ public class MlpSourceV1 extends DocumentSource {
     }
 
     @Override
-    public Pair<Integer, Integer> poll(SourceSettings settings, SecureStore store) throws Exception {
+    public Pair<Integer, Integer> poll(SourceSettings settings, UserInteraction gui, SecureStore store) throws Exception {
         final WebDriver driver = this.createDriver("https://financepilot-pe.mlp.de/p04pepe/entry?rzid=XC&rzbk=0752");
 
         final WebElement userField = driver.findElement(By.id("txtBenutzerkennung"));
-        userField.sendKeys(settings.get(USER));
+        userField.sendKeys(settings.get(USER, gui));
 
         final WebElement passwordField = driver.findElement(By.className("XPassword"));
-        passwordField.sendKeys(settings.get(PASSWORD));
+        passwordField.sendKeys(settings.get(PASSWORD, gui));
 
         passwordField.submit();
 

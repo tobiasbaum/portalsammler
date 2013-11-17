@@ -138,7 +138,7 @@ public class SourceConfigDialog extends JDialog {
             return;
         }
         final SourceSettings settings = this.workingCopy.getSettings(id);
-        final String type = settings.get(SourceFactories.TYPE);
+        final String type = settings.get(SourceFactories.TYPE, this.gui);
         final DocumentSourceFactory factory = SourceFactories.getByName(type);
         final DefaultFormBuilder formBuilder = new DefaultFormBuilder(
                 new FormLayout("right:p, 4dlu, fill:p:grow"), this.settingPanel);
