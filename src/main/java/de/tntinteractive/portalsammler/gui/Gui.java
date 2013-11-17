@@ -19,9 +19,11 @@
 package de.tntinteractive.portalsammler.gui;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
 import com.sun.pdfview.PDFFile;
 
@@ -43,9 +45,25 @@ public class Gui implements UserInteraction {
     }
 
     @Override
-    public void showError(Throwable e) {
+    public void showError(final Throwable e) {
         e.printStackTrace();
-        JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+        final Runnable msg = new Runnable() {
+            @Override
+            public void run() {
+                JOptionPane.showMessageDialog(null, "Error: " + e.getMessage());
+            }
+        };
+        if (SwingUtilities.isEventDispatchThread()) {
+            msg.run();
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(msg);
+            } catch (final InvocationTargetException e1) {
+                e1.printStackTrace();
+            } catch (final InterruptedException e1) {
+                e1.printStackTrace();
+            }
+        }
     }
 
     @Override

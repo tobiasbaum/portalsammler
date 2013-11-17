@@ -24,8 +24,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -36,6 +37,8 @@ import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.ProgressMonitor;
+import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 import javax.swing.table.AbstractTableModel;
 
@@ -48,6 +51,7 @@ import de.tntinteractive.portalsammler.engine.DocumentFilter;
 import de.tntinteractive.portalsammler.engine.DocumentFilterParser;
 import de.tntinteractive.portalsammler.engine.DocumentInfo;
 import de.tntinteractive.portalsammler.engine.SecureStore;
+import de.tntinteractive.portalsammler.engine.Settings;
 import de.tntinteractive.portalsammler.engine.ShouldNotHappenException;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
 import de.tntinteractive.portalsammler.sources.DocumentSourceFactory;
@@ -60,7 +64,10 @@ public class MainDialog extends JFrame {
     private final SecureStore store;
     private final JTable table;
     private final JTextField filterField;
+    private final JButton pollButton;
+
     private DocumentFilter currentFilter = DocumentFilter.NO_FILTER;
+
 
     public MainDialog(Gui gui, SecureStore store) {
         this.setTitle("Portalsammler");
@@ -101,7 +108,8 @@ public class MainDialog extends JFrame {
         });
 
         final ButtonBarBuilder bbb = new ButtonBarBuilder();
-        bbb.addButton(this.createConfigButton(), this.createPollButton());
+        this.pollButton = this.createPollButton();
+        bbb.addButton(this.createConfigButton(), this.pollButton);
 
         final PanelBuilder builder = new PanelBuilder(new FormLayout(
                 "4dlu, fill:pref:grow, 4dlu",
@@ -213,24 +221,75 @@ public class MainDialog extends JFrame {
     }
 
     private void poll(final Gui gui) {
-        for (final String id : this.store.getSettings().getAllSettingIds()) {
-            final SourceSettings s = this.store.getSettings().getSettings(id);
-            final DocumentSourceFactory factory = SourceFactories.getByName(s.get(SourceFactories.TYPE));
-            try {
-                factory.create(id).poll(s, this.store);
-            } catch (final Exception e) {
-                gui.showError(e);
-            }
-        }
 
+        this.pollButton.setEnabled(false);
+
+        final Settings settings = this.store.getSettings().deepClone();
+        final ProgressMonitor progress = new ProgressMonitor(
+                this, "Sammle Daten aus den Quell-Portalen...", "...", 0, settings.getSize());
+        progress.setMillisToDecideToPopup(0);
+        progress.setMillisToPopup(0);
+        progress.setProgress(0);
+
+        final SwingWorker<Void, String> task = new SwingWorker<Void, String>() {
+
+            @Override
+            protected Void doInBackground() throws Exception {
+                int cnt = 0;
+                for (final String id : settings.getAllSettingIds()) {
+                    if (this.isCancelled()) {
+                        break;
+                    }
+                    cnt++;
+                    this.publish(cnt + ": " + id);
+                    MainDialog.this.pollSingleSource(settings, id);
+                    this.setProgress(cnt);
+                }
+                MainDialog.this.store.writeMetadata();
+                return null;
+            }
+
+            @Override
+            protected void process(List<String> ids) {
+                progress.setNote(ids.get(ids.size() - 1));
+            }
+
+            @Override
+            public void done() {
+                MainDialog.this.pollButton.setEnabled(true);
+                MainDialog.this.fillTable();
+                try {
+                    this.get();
+                } catch (final Exception e) {
+                    gui.showError(e);
+                }
+            }
+
+        };
+
+        task.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                if ("progress".equals(evt.getPropertyName())) {
+                    progress.setProgress((Integer) evt.getNewValue());
+                }
+                if (progress.isCanceled()) {
+                    task.cancel(true);
+                }
+            }
+        });
+
+        task.execute();
+    }
+
+    private void pollSingleSource(Settings settings, String id) {
+        final SourceSettings s = settings.getSettings(id);
+        final DocumentSourceFactory factory = SourceFactories.getByName(s.get(SourceFactories.TYPE));
         try {
-            this.store.writeMetadata();
-        } catch (final IOException e) {
-            gui.showError(e);
-        } catch (final GeneralSecurityException e) {
-            gui.showError(e);
+            factory.create(id).poll(s, this.store);
+        } catch (final Exception e) {
+            this.gui.showError(e);
         }
-        this.fillTable();
     }
 
 }

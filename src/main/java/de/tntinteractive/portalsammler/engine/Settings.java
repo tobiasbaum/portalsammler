@@ -51,4 +51,8 @@ public class Settings {
         }
     }
 
+    public int getSize() {
+        return this.settings.size();
+    }
+
 }
