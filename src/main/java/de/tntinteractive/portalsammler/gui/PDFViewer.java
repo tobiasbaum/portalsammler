@@ -19,6 +19,7 @@
 package de.tntinteractive.portalsammler.gui;
 
 import java.awt.Image;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -117,6 +118,7 @@ public class PDFViewer extends JFrame {
 
         final Image image = page.getImage((int) width,(int) height, r2d, null, true, true);
         this.contentLabel.setIcon(new ImageIcon(image));
+        this.contentLabel.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
 
         this.validate();
     }

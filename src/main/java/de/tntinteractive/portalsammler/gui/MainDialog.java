@@ -34,6 +34,7 @@ import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -41,6 +42,8 @@ import javax.swing.ProgressMonitor;
 import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 import javax.swing.table.AbstractTableModel;
+
+import org.apache.commons.lang3.tuple.Pair;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
 import com.jgoodies.forms.builder.PanelBuilder;
@@ -231,10 +234,11 @@ public class MainDialog extends JFrame {
         progress.setMillisToPopup(0);
         progress.setProgress(0);
 
-        final SwingWorker<Void, String> task = new SwingWorker<Void, String>() {
+        final SwingWorker<String, String> task = new SwingWorker<String, String>() {
 
             @Override
-            protected Void doInBackground() throws Exception {
+            protected String doInBackground() throws Exception {
+                final StringBuilder summary = new StringBuilder();
                 int cnt = 0;
                 for (final String id : settings.getAllSettingIds()) {
                     if (this.isCancelled()) {
@@ -242,11 +246,18 @@ public class MainDialog extends JFrame {
                     }
                     cnt++;
                     this.publish(cnt + ": " + id);
-                    MainDialog.this.pollSingleSource(settings, id);
+                    final Pair<Integer, Integer> counts = MainDialog.this.pollSingleSource(settings, id);
+                    summary.append(id).append(": ");
+                    if (counts != null) {
+                        summary.append(counts.getLeft()).append(" neu, ")
+                            .append(counts.getRight()).append(" schon bekannt\n");
+                    } else {
+                        summary.append("Fehler!\n");
+                    }
                     this.setProgress(cnt);
                 }
                 MainDialog.this.store.writeMetadata();
-                return null;
+                return summary.toString();
             }
 
             @Override
@@ -259,7 +270,8 @@ public class MainDialog extends JFrame {
                 MainDialog.this.pollButton.setEnabled(true);
                 MainDialog.this.fillTable();
                 try {
-                    this.get();
+                    final String summary = this.get();
+                    JOptionPane.showMessageDialog(MainDialog.this, summary, "Abruf-Zusammenfassung", JOptionPane.INFORMATION_MESSAGE);
                 } catch (final Exception e) {
                     gui.showError(e);
                 }
@@ -282,13 +294,14 @@ public class MainDialog extends JFrame {
         task.execute();
     }
 
-    private void pollSingleSource(Settings settings, String id) {
+    private Pair<Integer, Integer> pollSingleSource(Settings settings, String id) {
         final SourceSettings s = settings.getSettings(id);
         final DocumentSourceFactory factory = SourceFactories.getByName(s.get(SourceFactories.TYPE));
         try {
-            factory.create(id).poll(s, this.store);
+            return factory.create(id).poll(s, this.store);
         } catch (final Exception e) {
             this.gui.showError(e);
+            return null;
         }
     }
 

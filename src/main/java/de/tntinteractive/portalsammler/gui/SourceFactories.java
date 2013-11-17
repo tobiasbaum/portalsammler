@@ -22,6 +22,7 @@ import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.sources.DocumentSourceFactory;
 import de.tntinteractive.portalsammler.sources.HanVBFactoryV1;
 import de.tntinteractive.portalsammler.sources.IngDibaFactoryV1;
+import de.tntinteractive.portalsammler.sources.MlpFactoryV1;
 
 public class SourceFactories {
 
@@ -30,7 +31,8 @@ public class SourceFactories {
     public static DocumentSourceFactory[] getFactories() {
         return new DocumentSourceFactory[] {
                 new IngDibaFactoryV1(),
-                new HanVBFactoryV1()
+                new HanVBFactoryV1(),
+                new MlpFactoryV1()
         };
     }
 

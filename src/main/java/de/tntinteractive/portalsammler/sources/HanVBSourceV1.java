@@ -25,6 +25,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -45,7 +46,7 @@ public class HanVBSourceV1 extends DocumentSource {
     }
 
     @Override
-    public void poll(SourceSettings settings, SecureStore store) throws Exception {
+    public Pair<Integer, Integer> poll(SourceSettings settings, SecureStore store) throws Exception {
         final WebDriver driver = this.createDriver("https://www.hanvb.de/ptlweb/WebPortal?bankid=0744");
 
         final WebElement userField = driver.findElement(By.id("vrkennungalias"));
@@ -58,6 +59,8 @@ public class HanVBSourceV1 extends DocumentSource {
 
         waitForPresence(driver, By.linkText("Postkorb"));
 
+        int newDocs = 0;
+        int knownDocs = 0;
         try {
             clickLink(driver, "Postkorb");
             waitForPresence(driver, By.name("confirmDeleteMultiMessage"));
@@ -94,12 +97,16 @@ public class HanVBSourceV1 extends DocumentSource {
 
                 if (!store.containsDocument(info)) {
                     store.storeDocument(info, content.toString().getBytes("UTF-8"));
+                    newDocs++;
+                } else {
+                    knownDocs++;
                 }
             }
 
         } finally {
             clickLink(driver, "Logout");
         }
+        return Pair.of(newDocs, knownDocs);
     }
 
     private boolean isNotLabeled(WebElement div) {

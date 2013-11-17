@@ -41,7 +41,20 @@ public class ByPartialButtonText extends By {
                 ret.add(button);
             }
         }
+        for (final WebElement button : context.findElements(By.tagName("input"))) {
+            if ("submit".equals(button.getAttribute("type"))) {
+                final String value = button.getAttribute("value");
+                if (value != null && value.contains(this.text)) {
+                    ret.add(button);
+                }
+            }
+        }
         return ret;
+    }
+
+    @Override
+    public String toString() {
+        return "by partial button text " + this.text;
     }
 
 }

@@ -18,12 +18,10 @@
  */
 package de.tntinteractive.portalsammler.sources;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -48,7 +46,7 @@ public class IngDibaSourceV1 extends DocumentSource {
     }
 
     @Override
-    public void poll(SourceSettings settings, SecureStore store) throws Exception {
+    public Pair<Integer, Integer> poll(SourceSettings settings, SecureStore store) throws Exception {
         final WebDriver driver = this.createDriver("https://banking.ing-diba.de/app/login");
 
         final WebElement userField = driver.findElement(By.name("view:kontonummer:border:border_body:kontonummer"));
@@ -75,18 +73,18 @@ public class IngDibaSourceV1 extends DocumentSource {
 
         for (final Integer missing : missingValues) {
             final String number = Character.toString(code.charAt(missing));
-            final WebElement numberButton = driver.findElement(byPartialButtonText(number));
-            numberButton.click();
+            clickButton(driver, number);
         }
 
-        final WebElement login = driver.findElement(byPartialButtonText("Anmelden"));
-        login.click();
+        clickButton(driver, "Anmelden");
 
         waitForPresence(driver, By.partialLinkText("Post-Box"));
         clickLink(driver, "Post-Box");
 
         (new WebDriverWait(driver, WAIT_TIME)).until(ExpectedConditions.invisibilityOfElementLocated(By.id("busy")));
 
+        int newDocs = 0;
+        int knownDocs = 0;
         try {
             final FileDownloader d = new FileDownloader(driver);
             for (final WebElement row : driver.findElements(By.tagName("tbody"))) {
@@ -95,7 +93,7 @@ public class IngDibaSourceV1 extends DocumentSource {
                 for (final WebElement cell : row.findElements(By.tagName("td"))) {
                     final String text = cell.getText();
                     if (this.isDate(text)) {
-                        metadata.setDate(this.parseDate(text));
+                        metadata.setDate(parseDate(text));
                     } else {
                         metadata.addKeywords(text);
                     }
@@ -103,19 +101,18 @@ public class IngDibaSourceV1 extends DocumentSource {
 
                 if (!store.containsDocument(metadata)) {
                     final WebElement link = row.findElement(By.tagName("a"));
-                    System.out.println(link.getAttribute("id") + ", " + link.getAttribute("href"));
                     final byte[] file = d.downloadFile(link);
                     store.storeDocument(metadata, file);
+                    newDocs++;
+                } else {
+                    knownDocs++;
                 }
             }
 
         } finally {
             clickLink(driver, "Log-out");
         }
-    }
-
-    private Date parseDate(String text) throws ParseException {
-        return new SimpleDateFormat("dd.MM.yyyy").parse(text);
+        return Pair.of(newDocs, knownDocs);
     }
 
     private boolean isDate(String text) {
