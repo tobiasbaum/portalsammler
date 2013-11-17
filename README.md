@@ -1,4 +1,4 @@
-portalsammler
+Portalsammler
 =============
 
 Programm zum Abgreifen und sicheren lokalen Ablegen von Dokumenten (Kontoauszüge, Rechnungen) 
