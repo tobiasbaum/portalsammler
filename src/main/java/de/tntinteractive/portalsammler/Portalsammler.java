@@ -18,6 +18,7 @@
  */
 package de.tntinteractive.portalsammler;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.security.GeneralSecurityException;
@@ -60,7 +61,6 @@ public class Portalsammler {
         } catch (final Exception e) {
             gui.showError(e);
         }
-//        ingDiba.poll(store.getSettings(ingDiba.getId()), store);
     }
 
     static SecureStore openOrCreateStore(StorageLayer storeDirectory, UserInteraction gui) throws IOException, GeneralSecurityException {
@@ -82,7 +82,13 @@ public class Portalsammler {
     }
 
     private static StorageLayer determineStoreDirectory(String[] args) {
-        return new FileBasedStorage(args[0]);
+        String directory;
+        if (args.length > 0) {
+            directory = args[0];
+        } else {
+            directory = new File(System.getProperty("user.home"), ".portalsammler").toString();
+        }
+        return new FileBasedStorage(directory);
     }
 
 }

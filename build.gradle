@@ -1,12 +1,29 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
+apply plugin: 'gradle-one-jar'
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.github.rholder:gradle-one-jar:1.0.3'
+    }
+}
 
 version = '1.0'
+
 jar {
     manifest {
         attributes 'Implementation-Title': 'Portalsammler', 'Implementation-Version': version
     }
 }
+
+task onejar(type: OneJar) {
+    mainClass = 'de.tntinteractive.portalsammler.Portalsammler'
+    mergeManifestFromJar = true
+}
+assemble.dependsOn onejar
 
 repositories {
     mavenCentral()
