@@ -12,6 +12,9 @@ buildscript {
 }
 
 version = '1.0'
+tasks.withType(Compile) {
+    options.encoding = 'UTF-8'
+}
 
 jar {
     manifest {
