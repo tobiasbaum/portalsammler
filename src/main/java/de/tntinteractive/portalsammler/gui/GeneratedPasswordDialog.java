@@ -103,6 +103,7 @@ public class GeneratedPasswordDialog extends JDialog {
         this.setBackground(Color.WHITE);
 
         this.pack();
+        this.setLocationRelativeTo(this.getOwner());
     }
 
     protected void print(UserInteraction gui) {

@@ -35,7 +35,8 @@ dependencies {
             'org.swinglabs:pdf-renderer:1.0.5',
             'com.jgoodies:jgoodies-forms:1.6.0',
             'com.google.zxing:core:2.2',
-            'com.google.zxing:javase:2.2'
+            'com.google.zxing:javase:2.2',
+            'com.github.sarxos:webcam-capture:0.3.9'
     testCompile 'junit:junit:4.+'
 }
 

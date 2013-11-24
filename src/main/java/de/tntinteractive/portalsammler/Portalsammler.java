@@ -48,6 +48,7 @@ public class Portalsammler {
             final StorageLayer storeDirectory = determineStoreDirectory(args);
             final SecureStore store = openOrCreateStore(storeDirectory, gui);
             if (store == null) {
+                System.exit(1);
                 return;
             }
 
@@ -60,6 +61,7 @@ public class Portalsammler {
 
         } catch (final Exception e) {
             gui.showError(e);
+            System.exit(2);
         }
     }
 

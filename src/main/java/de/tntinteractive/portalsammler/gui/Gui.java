@@ -37,7 +37,9 @@ public class Gui implements UserInteraction {
 
     @Override
     public String askForPassword(StorageLayer storeDirectory) {
-        return JOptionPane.showInputDialog("Enter password for " + storeDirectory);
+        final GetPasswordDialog dlg = new GetPasswordDialog(storeDirectory.toString());
+        dlg.setVisible(true);
+        return dlg.getPassword();
     }
 
     @Override

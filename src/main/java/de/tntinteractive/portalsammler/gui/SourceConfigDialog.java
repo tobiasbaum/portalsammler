@@ -95,6 +95,7 @@ public class SourceConfigDialog extends JDialog {
 
         this.setContentPane(builder.getPanel());
         this.pack();
+        this.setLocationRelativeTo(this.getOwner());
     }
 
     private JButton createOkButton() {

@@ -122,6 +122,7 @@ public class MainDialog extends JFrame {
         builder.add(bbb.getPanel(), CC.xy(2, 6));
 
         this.setContentPane(builder.getPanel());
+        this.setLocationRelativeTo(this.getOwner());
     }
 
     private void filter() {
