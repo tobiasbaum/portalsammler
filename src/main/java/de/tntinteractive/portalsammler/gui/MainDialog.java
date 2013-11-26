@@ -134,7 +134,9 @@ public class MainDialog extends JFrame {
         try {
             final DocumentInfo di = ((DocumentTableModel) this.table.getModel()).data.get(row);
             final byte[] content = this.store.getDocument(di);
+            this.store.markAsRead(di);
             this.gui.showDocument(di, content);
+            this.filter();
         } catch (final IOException e) {
             this.gui.showError(e);
         }
@@ -144,9 +146,11 @@ public class MainDialog extends JFrame {
 
         private static final long serialVersionUID = 8074878200701440324L;
 
+        private final SecureStore store;
         private final List<DocumentInfo> data;
 
-        public DocumentTableModel(Collection<DocumentInfo> documents) {
+        public DocumentTableModel(SecureStore store, Collection<DocumentInfo> documents) {
+            this.store = store;
             this.data = new ArrayList<DocumentInfo>(documents);
         }
 
@@ -157,7 +161,7 @@ public class MainDialog extends JFrame {
 
         @Override
         public int getColumnCount() {
-            return 3;
+            return 4;
         }
 
         @Override
@@ -166,8 +170,10 @@ public class MainDialog extends JFrame {
             case 0:
                 return "Datum";
             case 1:
-                return "Quelle";
+                return "ungelesen?";
             case 2:
+                return "Quelle";
+            case 3:
                 return "Stichworte";
             default:
                 throw new ShouldNotHappenException("invalid index " + columnIndex);
@@ -181,8 +187,10 @@ public class MainDialog extends JFrame {
             case 0:
                 return new SimpleDateFormat("dd.MM.yyyy HH:mm").format(di.getDate());
             case 1:
-                return di.getSourceId();
+                return this.store.isRead(di) ? "" : "X";
             case 2:
+                return di.getSourceId();
+            case 3:
                 return di.getKeywords();
             default:
                 throw new ShouldNotHappenException("invalid index " + columnIndex);
@@ -199,7 +207,7 @@ public class MainDialog extends JFrame {
                 filteredDocuments.add(d);
             }
         }
-        this.table.setModel(new DocumentTableModel(filteredDocuments));
+        this.table.setModel(new DocumentTableModel(this.store, filteredDocuments));
     }
 
     private JButton createConfigButton() {

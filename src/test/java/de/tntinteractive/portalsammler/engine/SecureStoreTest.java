@@ -71,6 +71,7 @@ public class SecureStoreTest {
 
         assertTrue(s.containsDocument(metadata));
         assertTrue(Arrays.equals(content, s.getDocument(metadata)));
+        assertFalse(s.isRead(metadata));
     }
 
     @Test
@@ -126,4 +127,38 @@ public class SecureStoreTest {
         assertTrue(Arrays.equals(content2, s2.getDocument(metadata2)));
     }
 
+    @Test
+    public void testMarkAsRead() throws Exception {
+        final SecureRandom srand = new InsecureRandom();
+        final byte[] key = CryptoHelper.generateKey(srand);
+        final SecureStore s = SecureStore.createEmpty(new StubStorage(), srand, key);
+
+        final DocumentInfo metadata = DocumentInfo.create("id1", DocumentFormat.PDF);
+        s.storeDocument(metadata, new byte[] {1, 2, 3, 4, 5});
+
+        s.markAsRead(metadata);
+        assertTrue(s.isRead(metadata));
+    }
+
+
+    @Test
+    public void testStoreReadAndUnreadIsKeptAfterReopen() throws Exception {
+        final SecureRandom srand = new InsecureRandom();
+        final byte[] key = CryptoHelper.generateKey(srand);
+        final StorageLayer stubStorage = new StubStorage();
+
+        final SecureStore s1 = SecureStore.createEmpty(stubStorage, srand, key);
+
+        final DocumentInfo metadata1 = DocumentInfo.create("id1", DocumentFormat.PDF);
+        s1.storeDocument(metadata1, new byte[] {1, 2, 3, 4, 5});
+        s1.writeMetadata();
+        final DocumentInfo metadata2 = DocumentInfo.create("id2", DocumentFormat.PDF);
+        s1.storeDocument(metadata2, new byte[] {7, 8, 9, 10});
+        s1.markAsRead(metadata2);
+
+        final SecureStore s2 = SecureStore.readFrom(stubStorage, srand, key);
+
+        assertFalse(s2.isRead(metadata1));
+        assertTrue(s2.isRead(metadata2));
+    }
 }

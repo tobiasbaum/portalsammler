@@ -122,7 +122,8 @@ public class SecureStore {
 
             Pair<String, Map<String, String>> p;
             while ((p = r.readNext()) != null) {
-                ret.index.putDocument(DocumentInfo.parse(p.getLeft()), p.getRight());
+                final DocumentInfo di = DocumentInfo.parse(p.getLeft());
+                ret.index.putDocument(di, p.getRight());
             }
 
             r.close();
@@ -151,6 +152,7 @@ public class SecureStore {
 
     public void storeDocument(DocumentInfo metadata, byte[] content) throws IOException {
         final Map<String, String> fileOffset = this.saveContent(content);
+        fileOffset.put("u", "u");
         this.index.putDocument(metadata, fileOffset);
     }
 
@@ -291,6 +293,18 @@ public class SecureStore {
 
     public DocumentIndex getIndex() {
         return this.index;
+    }
+
+    public boolean isRead(DocumentInfo di) {
+        final Map<String, String> fileInfo = this.index.getFilePosition(di);
+        return fileInfo == null || fileInfo.get("u") == null;
+    }
+
+    public void markAsRead(DocumentInfo di) {
+        final Map<String, String> fileInfo = this.index.getFilePosition(di);
+        if (fileInfo != null) {
+            fileInfo.remove("u");
+        }
     }
 
 }

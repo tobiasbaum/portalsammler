@@ -18,10 +18,12 @@
  */
 package de.tntinteractive.portalsammler.gui;
 
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -60,6 +62,7 @@ public class SourceConfigDialog extends JDialog {
     public SourceConfigDialog(Gui gui, SecureStore store) {
         this.setTitle("Quellen-Konfiguration");
         this.setModal(true);
+        this.setMinimumSize(new Dimension(500, 350));
 
         this.gui = gui;
         this.store = store;
@@ -134,6 +137,9 @@ public class SourceConfigDialog extends JDialog {
 
     private void updateSettingPanel() {
         this.settingPanel.removeAll();
+        if (!this.idCombo.isEnabled()) {
+            return;
+        }
         final String id = (String) this.idCombo.getSelectedItem();
         if (id == null) {
             return;
@@ -178,8 +184,14 @@ public class SourceConfigDialog extends JDialog {
 
     private void updateIdCombo() {
         this.idCombo.removeAllItems();
-        for (final String id : this.workingCopy.getAllSettingIds()) {
+        this.idCombo.setEnabled(true);
+        final Set<String> allIds = this.workingCopy.getAllSettingIds();
+        for (final String id : allIds) {
             this.idCombo.addItem(id);
+        }
+        if (allIds.isEmpty()) {
+            this.idCombo.setEnabled(false);
+            this.idCombo.addItem("Noch keine Quellen konfiguriert");
         }
     }
 

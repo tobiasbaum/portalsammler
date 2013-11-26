@@ -71,6 +71,9 @@ public class Gui implements UserInteraction {
 
     @Override
     public void showMainGui(SecureStore store) {
+        if (store.getSettings().getAllSettingIds().isEmpty()) {
+            this.showConfigGui(store);
+        }
         new MainDialog(this, store).setVisible(true);
     }
 
