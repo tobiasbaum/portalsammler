@@ -19,13 +19,13 @@
 package de.tntinteractive.portalsammler.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -33,8 +33,11 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.swing.JButton;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -43,6 +46,7 @@ import javax.swing.SwingWorker;
 import javax.swing.WindowConstants;
 import javax.swing.table.AbstractTableModel;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -101,14 +105,33 @@ public class MainDialog extends JFrame {
         this.table.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent me) {
-                final JTable table =(JTable) me.getSource();
-                if (me.getClickCount() == 2) {
-                    final Point p = me.getPoint();
-                    final int row = table.rowAtPoint(p);
-                    MainDialog.this.openDocument(row);
+                final int r = MainDialog.this.table.rowAtPoint(me.getPoint());
+                if (!MainDialog.this.table.getSelectionModel().isSelectedIndex(r)) {
+                    if (r >= 0 && r < MainDialog.this.table.getRowCount()) {
+                        MainDialog.this.table.setRowSelectionInterval(r, r);
+                    } else {
+                        MainDialog.this.table.clearSelection();
+                    }
+                }
+
+                if (me.isPopupTrigger()) {
+                    MainDialog.this.showPopup(me);
+                } else if (me.getClickCount() == 2) {
+                    MainDialog.this.openSelectedRows();
+                }
+            }
+            @Override
+            public void mouseReleased(MouseEvent me) {
+                if (me.isPopupTrigger()) {
+                    MainDialog.this.showPopup(me);
                 }
             }
         });
+        this.table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+        this.table.getColumnModel().getColumn(0).setPreferredWidth(120);
+        this.table.getColumnModel().getColumn(1).setPreferredWidth(80);
+        this.table.getColumnModel().getColumn(2).setPreferredWidth(100);
+        this.table.getColumnModel().getColumn(3).setPreferredWidth(500);
 
         final ButtonBarBuilder bbb = new ButtonBarBuilder();
         this.pollButton = this.createPollButton();
@@ -125,6 +148,47 @@ public class MainDialog extends JFrame {
         this.setLocationRelativeTo(this.getOwner());
     }
 
+    private void showPopup(MouseEvent ev) {
+        final JMenuItem open = new JMenuItem("Anzeigen");
+        open.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MainDialog.this.openSelectedRows();
+            }
+        });
+
+        final JMenuItem export = new JMenuItem("Exportieren");
+        export.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MainDialog.this.exportSelectedRows();
+            }
+        });
+
+        final JPopupMenu menu = new JPopupMenu();
+        menu.add(open);
+        menu.add(export);
+        menu.show(ev.getComponent(), ev.getX(), ev.getY());
+    }
+
+    protected void openSelectedRows() {
+        for (final int row : this.table.getSelectedRows()) {
+            this.openDocument(row);
+        }
+        this.filter();
+    }
+
+    protected void exportSelectedRows() {
+        final JFileChooser chooser = new JFileChooser();
+        for (final int row : this.table.getSelectedRows()) {
+            final boolean cancel = this.exportDocument(chooser, row);
+            if (cancel) {
+                break;
+            }
+        }
+        this.filter();
+    }
+
     private void filter() {
         this.currentFilter = DocumentFilterParser.parse(this.filterField.getText());
         this.fillTable();
@@ -132,14 +196,57 @@ public class MainDialog extends JFrame {
 
     private void openDocument(int row) {
         try {
-            final DocumentInfo di = ((DocumentTableModel) this.table.getModel()).data.get(row);
+            final DocumentInfo di = this.getDocumentInRow(row);
             final byte[] content = this.store.getDocument(di);
             this.store.markAsRead(di);
             this.gui.showDocument(di, content);
-            this.filter();
         } catch (final IOException e) {
             this.gui.showError(e);
         }
+    }
+
+    private boolean exportDocument(JFileChooser chooser, int row) {
+        try {
+            final DocumentInfo di = this.getDocumentInRow(row);
+            final byte[] content = this.store.getDocument(di);
+
+            chooser.setSelectedFile(new File(this.makeFilenameFor(di)));
+            final int result = chooser.showSaveDialog(this);
+            if (result != JFileChooser.APPROVE_OPTION) {
+                return true;
+            }
+
+            FileUtils.writeByteArrayToFile(chooser.getSelectedFile(), content);
+            this.store.markAsRead(di);
+            return false;
+        } catch (final IOException e) {
+            this.gui.showError(e);
+            return false;
+        }
+    }
+
+    private String makeFilenameFor(DocumentInfo di) {
+        final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        return this.makeValidFilename(di.getSourceId()
+                    + ", " + format.format(di.getDate())
+                    + ", " + this.cutToSize(di.getKeywords(), 30))
+                + "." + di.getFormat().getExtension();
+    }
+
+    private String cutToSize(String s, int i) {
+        if (s.length() > i) {
+            return s.substring(0, i);
+        } else {
+            return s;
+        }
+    }
+
+    private String makeValidFilename(String string) {
+        return string.replaceAll("[|:<>\\/\n\r\t]+", " ");
+    }
+
+    private DocumentInfo getDocumentInRow(int row) {
+        return ((DocumentTableModel) this.table.getModel()).data.get(row);
     }
 
     private static class DocumentTableModel extends AbstractTableModel {
@@ -200,6 +307,8 @@ public class MainDialog extends JFrame {
     }
 
     private void fillTable() {
+        final int[] widths = this.saveColumnWidths();
+
         final Collection<DocumentInfo> allDocuments = this.store.getIndex().getAllDocuments();
         final List<DocumentInfo> filteredDocuments = new ArrayList<DocumentInfo>();
         for (final DocumentInfo d : allDocuments) {
@@ -208,6 +317,21 @@ public class MainDialog extends JFrame {
             }
         }
         this.table.setModel(new DocumentTableModel(this.store, filteredDocuments));
+        this.restoreColumnWidths(widths);
+    }
+
+    private int[] saveColumnWidths() {
+        final int[] widths = new int[this.table.getColumnCount()];
+        for (int i = 0; i < widths.length; i++) {
+            widths[i] = this.table.getColumnModel().getColumn(i).getPreferredWidth();
+        }
+        return widths;
+    }
+
+    private void restoreColumnWidths(int[] widths) {
+        for (int i = 0; i < widths.length; i++) {
+            this.table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
+        }
     }
 
     private JButton createConfigButton() {

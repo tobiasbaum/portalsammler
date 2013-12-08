@@ -19,6 +19,16 @@
 package de.tntinteractive.portalsammler.engine;
 
 public enum DocumentFormat {
-    PDF,
-    TEXT
+    PDF ("pdf"),
+    TEXT ("txt");
+
+    private final String ext;
+
+    private DocumentFormat(String ext) {
+        this.ext = ext;
+    }
+
+    public final String getExtension() {
+        return this.ext;
+    }
 }
