@@ -23,7 +23,7 @@ import java.util.List;
 
 import de.tntinteractive.portalsammler.engine.SettingKey;
 
-public class MlpFactoryV1 extends DocumentSourceFactory {
+public final class MlpFactoryV1 extends DocumentSourceFactory {
 
     public MlpFactoryV1() {
         super("MLP (Banking) V1");
@@ -35,7 +35,7 @@ public class MlpFactoryV1 extends DocumentSourceFactory {
     }
 
     @Override
-    public DocumentSource create(String id) {
+    public DocumentSource create(final String id) {
         return new MlpSourceV1(id);
     }
 

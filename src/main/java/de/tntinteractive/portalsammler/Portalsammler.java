@@ -28,19 +28,22 @@ import de.tntinteractive.portalsammler.engine.CryptoHelper;
 import de.tntinteractive.portalsammler.engine.FileBasedStorage;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.StorageLayer;
+import de.tntinteractive.portalsammler.engine.UserInteraction;
 import de.tntinteractive.portalsammler.gui.Gui;
-import de.tntinteractive.portalsammler.gui.UserInteraction;
 
 
-public class Portalsammler {
+public final class Portalsammler {
 
-    public static void main(String[] args) throws Exception {
+    private Portalsammler() {
+    }
+
+    public static void main(final String[] args) throws Exception {
         final UserInteraction gui = new Gui();
 
         try {
             Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
                 @Override
-                public void uncaughtException(Thread t, Throwable e) {
+                public void uncaughtException(final Thread t, final Throwable e) {
                     gui.showError(e);
                 }
             });
@@ -65,7 +68,9 @@ public class Portalsammler {
         }
     }
 
-    static SecureStore openOrCreateStore(StorageLayer storeDirectory, UserInteraction gui) throws IOException, GeneralSecurityException {
+    static SecureStore openOrCreateStore(final StorageLayer storeDirectory, final UserInteraction gui)
+        throws IOException, GeneralSecurityException {
+
         final SecureRandom srand = new SecureRandom();
         if (storeDirectory.exists()) {
             final byte[] key = CryptoHelper.keyFromString(gui.askForPassword(storeDirectory));
@@ -83,7 +88,7 @@ public class Portalsammler {
         }
     }
 
-    private static StorageLayer determineStoreDirectory(String[] args) {
+    private static StorageLayer determineStoreDirectory(final String[] args) {
         String directory;
         if (args.length > 0) {
             directory = args[0];

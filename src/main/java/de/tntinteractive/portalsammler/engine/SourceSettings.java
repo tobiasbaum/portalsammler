@@ -23,12 +23,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import de.tntinteractive.portalsammler.gui.UserInteraction;
 
 /**
  * Verwaltet die Einstellungen zu einer Quelle.
  */
-public class SourceSettings implements Serializable {
+public final class SourceSettings implements Serializable {
 
     private static final long serialVersionUID = 3724264529057649734L;
 
@@ -37,13 +36,13 @@ public class SourceSettings implements Serializable {
     public SourceSettings() {
     }
 
-    public SourceSettings(Map<String, String> content) {
+    public SourceSettings(final Map<String, String> content) {
         for (final Entry<String, String> e : content.entrySet()) {
             this.values.put(new SettingKey(e.getKey()), e.getValue());
         }
     }
 
-    public String get(SettingKey key, UserInteraction gui) {
+    public String get(final SettingKey key, final UserInteraction gui) {
         final String ret = this.values.get(key);
         if (ret == null || ret.isEmpty()) {
             return gui.askForSetting(key);
@@ -51,7 +50,7 @@ public class SourceSettings implements Serializable {
         return ret;
     }
 
-    public String getOrCreate(SettingKey key) {
+    public String getOrCreate(final SettingKey key) {
         final String ret = this.values.get(key);
         if (ret == null) {
             this.values.put(key, "");
@@ -60,7 +59,7 @@ public class SourceSettings implements Serializable {
         return ret;
     }
 
-    public void set(SettingKey key, String value) {
+    public void set(final SettingKey key, final String value) {
         this.values.put(key, value);
     }
 
@@ -78,7 +77,7 @@ public class SourceSettings implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (!(o instanceof SourceSettings)) {
             return false;
         }

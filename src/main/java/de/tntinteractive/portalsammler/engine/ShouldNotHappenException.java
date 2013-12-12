@@ -18,15 +18,15 @@
  */
 package de.tntinteractive.portalsammler.engine;
 
-public class ShouldNotHappenException extends RuntimeException {
+public final class ShouldNotHappenException extends RuntimeException {
 
     private static final long serialVersionUID = 8822353977934338722L;
 
-    public ShouldNotHappenException(Throwable cause) {
+    public ShouldNotHappenException(final Throwable cause) {
         super(cause);
     }
 
-    public ShouldNotHappenException(String string) {
+    public ShouldNotHappenException(final String string) {
         super(string);
     }
 

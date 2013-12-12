@@ -1,15 +1,36 @@
+/*
+    Copyright (C) 2013  Tobias Baum <tbaum at tntinteractive.de>
+
+    This file is a part of Portalsammler.
+
+    Portalsammler is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Portalsammler is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Portalsammler.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package de.tntinteractive.portalsammler.engine;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class DocumentFilterParser {
+public final class DocumentFilterParser {
+
+    private DocumentFilterParser() {
+    }
 
     private static final class TokenConsumer {
         private final List<String> tokens;
         private int curPos;
 
-        public TokenConsumer(List<String> tokens) {
+        public TokenConsumer(final List<String> tokens) {
             this.tokens = tokens;
         }
 
@@ -21,7 +42,7 @@ public class DocumentFilterParser {
             }
         }
 
-        public void setCurPos(int curPos) {
+        public void setCurPos(final int curPos) {
             this.curPos = curPos;
         }
 
@@ -30,7 +51,7 @@ public class DocumentFilterParser {
         }
     }
 
-    public static DocumentFilter parse(String filter) {
+    public static DocumentFilter parse(final String filter) {
         final List<String> tokens = tokenize(filter);
         if (tokens.isEmpty()) {
             return DocumentFilter.NO_FILTER;
@@ -46,12 +67,12 @@ public class DocumentFilterParser {
         }
     }
 
-    private static void removeAndTokens(List<String> tokens) {
+    private static void removeAndTokens(final List<String> tokens) {
         while (tokens.remove("&")) {
         }
     }
 
-    private static DocumentFilter parse(TokenConsumer tokens) {
+    private static DocumentFilter parse(final TokenConsumer tokens) {
         DocumentFilter ret;
         ret = parseOr(tokens);
         if (ret != null) {
@@ -64,7 +85,7 @@ public class DocumentFilterParser {
         return null;
     }
 
-    private static DocumentFilter parseOr(TokenConsumer tokens) {
+    private static DocumentFilter parseOr(final TokenConsumer tokens) {
         final int startPos = tokens.getCurPos();
         final DocumentFilter first = parseAnd(tokens);
         if (first == null) {
@@ -83,7 +104,7 @@ public class DocumentFilterParser {
         return new OrFilter(first, rest);
     }
 
-    private static DocumentFilter parseAnd(TokenConsumer tokens) {
+    private static DocumentFilter parseAnd(final TokenConsumer tokens) {
         int startPos = tokens.getCurPos();
         final DocumentFilter first = parseParen(tokens);
         if (first == null) {
@@ -98,7 +119,7 @@ public class DocumentFilterParser {
         return new AndFilter(first, rest);
     }
 
-    private static DocumentFilter parseParen(TokenConsumer tokens) {
+    private static DocumentFilter parseParen(final TokenConsumer tokens) {
         final int startPos = tokens.getCurPos();
         final String opening = tokens.next();
         if (!"(".equals(opening)) {
@@ -119,7 +140,7 @@ public class DocumentFilterParser {
         return child;
     }
 
-    private static DocumentFilter parseContains(TokenConsumer tokens) {
+    private static DocumentFilter parseContains(final TokenConsumer tokens) {
         final int startPos = tokens.getCurPos();
         final String s = tokens.next();
         if (s == null || s.length() == 1 && isCommandChar(s.charAt(0))) {
@@ -134,7 +155,7 @@ public class DocumentFilterParser {
         QUOTED
     }
 
-    static List<String> tokenize(String filter) {
+    static List<String> tokenize(final String filter) {
         final List<String> tokens = new ArrayList<String>();
         final StringBuilder curToken = new StringBuilder();
         TokenizerState state = TokenizerState.OUT;
@@ -176,7 +197,7 @@ public class DocumentFilterParser {
         }
     }
 
-    private static boolean isCommandChar(char ch) {
+    private static boolean isCommandChar(final char ch) {
         return ch == '&' || ch == '|' || ch == '(' || ch == ')';
     }
 

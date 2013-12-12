@@ -24,7 +24,7 @@ public enum DocumentFormat {
 
     private final String ext;
 
-    private DocumentFormat(String ext) {
+    private DocumentFormat(final String ext) {
         this.ext = ext;
     }
 

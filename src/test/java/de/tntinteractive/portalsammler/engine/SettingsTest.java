@@ -25,7 +25,7 @@ import static org.junit.Assert.assertSame;
 
 import org.junit.Test;
 
-public class SettingsTest {
+public final class SettingsTest {
 
     @Test
     public void testAddSetting() {

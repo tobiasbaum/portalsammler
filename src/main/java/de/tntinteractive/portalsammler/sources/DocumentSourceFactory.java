@@ -26,16 +26,16 @@ public abstract class DocumentSourceFactory {
 
     private final String name;
 
-    public DocumentSourceFactory(String name) {
+    public DocumentSourceFactory(final String name) {
         this.name = name;
     }
 
-    public String getName() {
+    public final String getName() {
         return this.name;
     }
 
     @Override
-    public String toString() {
+    public final String toString() {
         return this.name;
     }
 

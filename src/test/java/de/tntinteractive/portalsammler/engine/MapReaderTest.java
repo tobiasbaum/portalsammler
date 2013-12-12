@@ -29,17 +29,17 @@ import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Test;
 
-public class MapReaderTest {
+public final class MapReaderTest {
 
-    private static MapReader createReader(String input) throws Exception {
+    private static MapReader createReader(final String input) throws Exception {
         return MapReader.createFrom(new ByteArrayInputStream(input.getBytes("UTF-8")));
     }
 
     @Test
     public void testReadEmptyMap() throws Exception {
         final String input =
-                "test123\n" +
-                ".";
+                "test123\n"
+                + ".";
         final MapReader r = createReader(input);
         final Pair<String, Map<String, String>> p = r.readNext();
         assertEquals("test123", p.getLeft());
@@ -50,10 +50,10 @@ public class MapReaderTest {
     @Test
     public void testSingleEntryMap() throws Exception {
         final String input =
-                "test123\n" +
-                " e1\n" +
-                " w1\n" +
-                ".";
+                "test123\n"
+                + " e1\n"
+                + " w1\n"
+                + ".";
         final MapReader r = createReader(input);
         final Pair<String, Map<String, String>> p = r.readNext();
         assertEquals("test123", p.getLeft());
@@ -64,12 +64,12 @@ public class MapReaderTest {
     @Test
     public void testTwoEntryMap() throws Exception {
         final String input =
-                "test123\n" +
-                " e1\n" +
-                " w1\n" +
-                " e2\n" +
-                " w2\n" +
-                ".";
+                "test123\n"
+                + " e1\n"
+                + " w1\n"
+                + " e2\n"
+                + " w2\n"
+                + ".";
         final MapReader r = createReader(input);
         final Pair<String, Map<String, String>> p = r.readNext();
         assertEquals("test123", p.getLeft());
@@ -83,14 +83,14 @@ public class MapReaderTest {
     @Test
     public void testMultipleMaps() throws Exception {
         final String input =
-                "test123\n" +
-                " ä\n" +
-                " ö\n" +
-                ".\n" +
-                "test456\n" +
-                " ü\n" +
-                " ß\n" +
-                ".";
+                "test123\n"
+                + " ä\n"
+                + " ö\n"
+                + ".\n"
+                + "test456\n"
+                + " ü\n"
+                + " ß\n"
+                + ".";
         final MapReader r = createReader(input);
         final Pair<String, Map<String, String>> p1 = r.readNext();
         assertEquals("test123", p1.getLeft());

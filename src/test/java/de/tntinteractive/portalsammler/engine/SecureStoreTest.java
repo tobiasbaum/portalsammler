@@ -28,7 +28,7 @@ import java.util.Arrays;
 import org.junit.Test;
 
 
-public class SecureStoreTest {
+public final class SecureStoreTest {
 
     private static final SettingKey USER = new SettingKey("user");
     private static final SettingKey PASSWORD = new SettingKey("password");

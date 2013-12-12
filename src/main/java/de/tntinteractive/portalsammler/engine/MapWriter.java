@@ -27,15 +27,15 @@ import java.io.Writer;
 import java.util.Map;
 import java.util.Map.Entry;
 
-public class MapWriter implements Closeable {
+public final class MapWriter implements Closeable {
 
     private final Writer writer;
 
-    public MapWriter(Writer writer) {
+    public MapWriter(final Writer writer) {
         this.writer = writer;
     }
 
-    public static MapWriter createFor(OutputStream buffer) {
+    public static MapWriter createFor(final OutputStream buffer) {
         try {
             return new MapWriter(new OutputStreamWriter(buffer, "UTF-8"));
         } catch (final UnsupportedEncodingException e) {
@@ -43,7 +43,7 @@ public class MapWriter implements Closeable {
         }
     }
 
-    public void write(String id, Map<String, String> map) throws IOException {
+    public void write(final String id, final Map<String, String> map) throws IOException {
         this.writeLine(id);
         for (final Entry<String, String> e : map.entrySet()) {
             this.writer.write(' ');
@@ -54,7 +54,7 @@ public class MapWriter implements Closeable {
         this.writer.write(".\n");
     }
 
-    private void writeLine(String data) throws IOException {
+    private void writeLine(final String data) throws IOException {
         if (data.contains("\n") || data.contains("\r")) {
             throw new IllegalArgumentException("data with line break: " + data);
         }

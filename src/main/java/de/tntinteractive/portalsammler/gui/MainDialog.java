@@ -18,39 +18,25 @@
  */
 package de.tntinteractive.portalsammler.gui;
 
-import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingWorker;
-import javax.swing.WindowConstants;
-import javax.swing.table.AbstractTableModel;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.jgoodies.forms.builder.ButtonBarBuilder;
@@ -59,42 +45,34 @@ import com.jgoodies.forms.factories.CC;
 import com.jgoodies.forms.layout.FormLayout;
 
 import de.tntinteractive.portalsammler.engine.CryptoHelper;
-import de.tntinteractive.portalsammler.engine.DocumentFilter;
 import de.tntinteractive.portalsammler.engine.DocumentFilterParser;
-import de.tntinteractive.portalsammler.engine.DocumentInfo;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.Settings;
-import de.tntinteractive.portalsammler.engine.ShouldNotHappenException;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
 import de.tntinteractive.portalsammler.sources.DocumentSourceFactory;
 
-public class MainDialog extends JFrame {
+public final class MainDialog extends JFrame {
 
     private static final long serialVersionUID = -2309663260423505246L;
 
     private final Gui gui;
-    private final JTable table;
     private final JTextField filterField;
     private final JButton pollButton;
-
-    private SecureStore store;
-
-    private DocumentFilter currentFilter = DocumentFilter.NO_FILTER;
+    private final DocumentTable table;
 
 
-    public MainDialog(Gui gui, SecureStore store) {
+    public MainDialog(final Gui gui, final SecureStore store) {
         this.setTitle("Portalsammler");
-        this.setLayout(new BorderLayout());
         this.setSize(800, 600);
         this.gui = gui;
-        this.store = store;
+        this.table = new DocumentTable(gui, store);
 
-        this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         this.filterField = new JTextField();
         this.filterField.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 MainDialog.this.filter();
             }
         });
@@ -104,41 +82,6 @@ public class MainDialog extends JFrame {
         fpb.addLabel("&Filter", CC.xy(1, 1));
         fpb.add(this.filterField, CC.xy(3, 1));
 
-        this.table = new JTable();
-        this.table.setRowSelectionAllowed(true);
-        this.add(new JScrollPane(this.table), BorderLayout.CENTER);
-        this.fillTable();
-        this.table.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent me) {
-                final int r = MainDialog.this.table.rowAtPoint(me.getPoint());
-                if (!MainDialog.this.table.getSelectionModel().isSelectedIndex(r)) {
-                    if (r >= 0 && r < MainDialog.this.table.getRowCount()) {
-                        MainDialog.this.table.setRowSelectionInterval(r, r);
-                    } else {
-                        MainDialog.this.table.clearSelection();
-                    }
-                }
-
-                if (me.isPopupTrigger()) {
-                    MainDialog.this.showPopup(me);
-                } else if (me.getClickCount() == 2) {
-                    MainDialog.this.openSelectedRows();
-                }
-            }
-            @Override
-            public void mouseReleased(MouseEvent me) {
-                if (me.isPopupTrigger()) {
-                    MainDialog.this.showPopup(me);
-                }
-            }
-        });
-        this.table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-        this.table.getColumnModel().getColumn(0).setPreferredWidth(120);
-        this.table.getColumnModel().getColumn(1).setPreferredWidth(80);
-        this.table.getColumnModel().getColumn(2).setPreferredWidth(100);
-        this.table.getColumnModel().getColumn(3).setPreferredWidth(500);
-
         final ButtonBarBuilder bbb = new ButtonBarBuilder();
         this.pollButton = this.createPollButton();
         bbb.addButton(this.pollButton, this.createConfigButton());
@@ -147,206 +90,24 @@ public class MainDialog extends JFrame {
                 "4dlu, fill:pref:grow, 4dlu",
                 "4dlu, p, 4dlu, fill:50dlu:grow, 4dlu, p, 4dlu"));
         builder.add(fpb.getPanel(), CC.xy(2, 2));
-        builder.add(new JScrollPane(this.table), CC.xy(2, 4));
+        builder.add(this.table.createWrappedPanel(), CC.xy(2, 4));
         builder.add(bbb.getPanel(), CC.xy(2, 6));
 
         this.setContentPane(builder.getPanel());
         this.setLocationRelativeTo(this.getOwner());
     }
 
-    private void showPopup(MouseEvent ev) {
-        final JMenuItem open = new JMenuItem("Anzeigen");
-        open.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                MainDialog.this.openSelectedRows();
-            }
-        });
-
-        final JMenuItem export = new JMenuItem("Exportieren");
-        export.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                MainDialog.this.exportSelectedRows();
-            }
-        });
-
-        final JPopupMenu menu = new JPopupMenu();
-        menu.add(open);
-        menu.add(export);
-        menu.show(ev.getComponent(), ev.getX(), ev.getY());
-    }
-
-    protected void openSelectedRows() {
-        for (final int row : this.table.getSelectedRows()) {
-            this.openDocument(row);
-        }
-        this.filter();
-    }
-
-    protected void exportSelectedRows() {
-        final JFileChooser chooser = new JFileChooser();
-        for (final int row : this.table.getSelectedRows()) {
-            final boolean cancel = this.exportDocument(chooser, row);
-            if (cancel) {
-                break;
-            }
-        }
-        this.filter();
-    }
-
     private void filter() {
-        this.currentFilter = DocumentFilterParser.parse(this.filterField.getText());
-        this.fillTable();
-    }
-
-    private void openDocument(int row) {
-        try {
-            final DocumentInfo di = this.getDocumentInRow(row);
-            final byte[] content = this.store.getDocument(di);
-            this.store.markAsRead(di);
-            this.gui.showDocument(di, content);
-        } catch (final IOException e) {
-            this.gui.showError(e);
-        }
-    }
-
-    private boolean exportDocument(JFileChooser chooser, int row) {
-        try {
-            final DocumentInfo di = this.getDocumentInRow(row);
-            final byte[] content = this.store.getDocument(di);
-
-            chooser.setSelectedFile(new File(this.makeFilenameFor(di)));
-            final int result = chooser.showSaveDialog(this);
-            if (result != JFileChooser.APPROVE_OPTION) {
-                return true;
-            }
-
-            FileUtils.writeByteArrayToFile(chooser.getSelectedFile(), content);
-            this.store.markAsRead(di);
-            return false;
-        } catch (final IOException e) {
-            this.gui.showError(e);
-            return false;
-        }
-    }
-
-    private String makeFilenameFor(DocumentInfo di) {
-        final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-        return this.makeValidFilename(di.getSourceId()
-                    + ", " + format.format(di.getDate())
-                    + ", " + this.cutToSize(di.getKeywords(), 30))
-                + "." + di.getFormat().getExtension();
-    }
-
-    private String cutToSize(String s, int i) {
-        if (s.length() > i) {
-            return s.substring(0, i);
-        } else {
-            return s;
-        }
-    }
-
-    private String makeValidFilename(String string) {
-        return string.replaceAll("[|:<>\\/\n\r\t]+", " ");
-    }
-
-    private DocumentInfo getDocumentInRow(int row) {
-        return ((DocumentTableModel) this.table.getModel()).data.get(row);
-    }
-
-    private static class DocumentTableModel extends AbstractTableModel {
-
-        private static final long serialVersionUID = 8074878200701440324L;
-
-        private final SecureStore store;
-        private final List<DocumentInfo> data;
-
-        public DocumentTableModel(SecureStore store, Collection<DocumentInfo> documents) {
-            this.store = store;
-            this.data = new ArrayList<DocumentInfo>(documents);
-        }
-
-        @Override
-        public int getRowCount() {
-            return this.data.size();
-        }
-
-        @Override
-        public int getColumnCount() {
-            return 4;
-        }
-
-        @Override
-        public String getColumnName(int columnIndex) {
-            switch (columnIndex) {
-            case 0:
-                return "Datum";
-            case 1:
-                return "ungelesen?";
-            case 2:
-                return "Quelle";
-            case 3:
-                return "Stichworte";
-            default:
-                throw new ShouldNotHappenException("invalid index " + columnIndex);
-            }
-        }
-
-        @Override
-        public Object getValueAt(int rowIndex, int columnIndex) {
-            final DocumentInfo di = this.data.get(rowIndex);
-            switch (columnIndex) {
-            case 0:
-                return new SimpleDateFormat("dd.MM.yyyy HH:mm").format(di.getDate());
-            case 1:
-                return this.store.isRead(di) ? "" : "X";
-            case 2:
-                return di.getSourceId();
-            case 3:
-                return di.getKeywords();
-            default:
-                throw new ShouldNotHappenException("invalid index " + columnIndex);
-            }
-        }
-
-    }
-
-    private void fillTable() {
-        final int[] widths = this.saveColumnWidths();
-
-        final Collection<DocumentInfo> allDocuments = this.store.getIndex().getAllDocuments();
-        final List<DocumentInfo> filteredDocuments = new ArrayList<DocumentInfo>();
-        for (final DocumentInfo d : allDocuments) {
-            if (this.currentFilter.shallShow(d)) {
-                filteredDocuments.add(d);
-            }
-        }
-        this.table.setModel(new DocumentTableModel(this.store, filteredDocuments));
-        this.restoreColumnWidths(widths);
-    }
-
-    private int[] saveColumnWidths() {
-        final int[] widths = new int[this.table.getColumnCount()];
-        for (int i = 0; i < widths.length; i++) {
-            widths[i] = this.table.getColumnModel().getColumn(i).getPreferredWidth();
-        }
-        return widths;
-    }
-
-    private void restoreColumnWidths(int[] widths) {
-        for (int i = 0; i < widths.length; i++) {
-            this.table.getColumnModel().getColumn(i).setPreferredWidth(widths[i]);
-        }
+        this.table.changeFilter(DocumentFilterParser.parse(this.filterField.getText()));
     }
 
     private JButton createConfigButton() {
         final JButton button = new JButton("Konfiguration...");
         button.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 final JPopupMenu menu = MainDialog.this.createConfigMenu();
-                final Component source = (Component) e.getSource();
+                final JButton source = (JButton) e.getSource();
                 menu.show(source, 0, source.getHeight());
             }
         });
@@ -359,8 +120,8 @@ public class MainDialog extends JFrame {
         final JMenuItem sourceConfig = new JMenuItem("Quellen verwalten...");
         sourceConfig.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                MainDialog.this.gui.showConfigGui(MainDialog.this.store);
+            public void actionPerformed(final ActionEvent e) {
+                MainDialog.this.gui.showConfigGui(MainDialog.this.getStore());
             }
         });
         menu.add(sourceConfig);
@@ -368,7 +129,7 @@ public class MainDialog extends JFrame {
         final JMenuItem changePassword = new JMenuItem("Neues Passwort...");
         changePassword.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 try {
                     MainDialog.this.changePassword();
                 } catch (final GeneralSecurityException ex) {
@@ -387,7 +148,7 @@ public class MainDialog extends JFrame {
         final JButton button = new JButton("Dokumente abrufen");
         button.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 MainDialog.this.poll(MainDialog.this.gui);
             }
         });
@@ -398,7 +159,7 @@ public class MainDialog extends JFrame {
 
         this.pollButton.setEnabled(false);
 
-        final Settings settings = this.store.getSettings().deepClone();
+        final Settings settings = this.getStore().getSettings().deepClone();
         final ProgressMonitor progress = new ProgressMonitor(
                 this, "Sammle Daten aus den Quell-Portalen...", "...", 0, settings.getSize());
         progress.setMillisToDecideToPopup(0);
@@ -427,22 +188,23 @@ public class MainDialog extends JFrame {
                     }
                     this.setProgress(cnt);
                 }
-                MainDialog.this.store.writeMetadata();
+                MainDialog.this.getStore().writeMetadata();
                 return summary.toString();
             }
 
             @Override
-            protected void process(List<String> ids) {
+            protected void process(final List<String> ids) {
                 progress.setNote(ids.get(ids.size() - 1));
             }
 
             @Override
             public void done() {
                 MainDialog.this.pollButton.setEnabled(true);
-                MainDialog.this.fillTable();
+                MainDialog.this.table.refreshContents();
                 try {
                     final String summary = this.get();
-                    JOptionPane.showMessageDialog(MainDialog.this, summary, "Abruf-Zusammenfassung", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(MainDialog.this, summary, "Abruf-Zusammenfassung",
+                            JOptionPane.INFORMATION_MESSAGE);
                 } catch (final Exception e) {
                     gui.showError(e);
                 }
@@ -452,7 +214,7 @@ public class MainDialog extends JFrame {
 
         task.addPropertyChangeListener(new PropertyChangeListener() {
             @Override
-            public void propertyChange(PropertyChangeEvent evt) {
+            public void propertyChange(final PropertyChangeEvent evt) {
                 if ("progress".equals(evt.getPropertyName())) {
                     progress.setProgress((Integer) evt.getNewValue());
                 }
@@ -465,11 +227,11 @@ public class MainDialog extends JFrame {
         task.execute();
     }
 
-    private Pair<Integer, Integer> pollSingleSource(Settings settings, String id) {
+    private Pair<Integer, Integer> pollSingleSource(final Settings settings, final String id) {
         final SourceSettings s = settings.getSettings(id);
         final DocumentSourceFactory factory = SourceFactories.getByName(s.get(SourceFactories.TYPE, this.gui));
         try {
-            return factory.create(id).poll(s, this.gui, this.store);
+            return factory.create(id).poll(s, this.gui, this.getStore());
         } catch (final Exception e) {
             this.gui.showError(e);
             return null;
@@ -482,7 +244,7 @@ public class MainDialog extends JFrame {
         this.gui.showGeneratedPassword(CryptoHelper.keyToString(key));
 
         while (true) {
-            final String enteredPw = this.gui.askForPassword(this.store.getDirectory());
+            final String enteredPw = this.gui.askForPassword(this.getStore().getDirectory());
             if (enteredPw == null) {
                 //Abbruch durch den Benutzer
                 return;
@@ -495,8 +257,11 @@ public class MainDialog extends JFrame {
                     "Falsches Passwort", JOptionPane.ERROR_MESSAGE, null);
         }
 
-        this.store = this.store.recrypt(key);
-        this.filter();
+        this.table.setStore(this.getStore().recrypt(key));
+    }
+
+    private SecureStore getStore() {
+        return this.table.getStore();
     }
 
 }

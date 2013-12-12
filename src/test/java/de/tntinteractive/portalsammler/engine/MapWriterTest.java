@@ -30,13 +30,13 @@ import java.util.Map;
 
 import org.junit.Test;
 
-public class MapWriterTest {
+public final class MapWriterTest {
 
-    private static MapWriter createWriter(OutputStream buffer) {
+    private static MapWriter createWriter(final OutputStream buffer) {
         return MapWriter.createFor(buffer);
     }
 
-    private static String getData(ByteArrayOutputStream buffer) throws Exception {
+    private static String getData(final ByteArrayOutputStream buffer) throws Exception {
         return buffer.toString("UTF-8");
     }
 
@@ -52,16 +52,16 @@ public class MapWriterTest {
         w.close();
 
         assertEquals(
-                "asdf\n" +
-                " x\n" +
-                " y\n" +
-                ".\n" +
-                "jklö\n" +
-                " 123\n" +
-                " 456\n" +
-                " a\n" +
-                " b\n" +
-                ".\n",
+                "asdf\n"
+                + " x\n"
+                + " y\n"
+                + ".\n"
+                + "jklö\n"
+                + " 123\n"
+                + " 456\n"
+                + " a\n"
+                + " b\n"
+                + ".\n",
                 getData(buffer));
     }
 

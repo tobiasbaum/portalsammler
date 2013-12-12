@@ -22,7 +22,7 @@ public abstract class DocumentFilter {
 
     public static final DocumentFilter NO_FILTER = new DocumentFilter() {
         @Override
-        public boolean shallShow(DocumentInfo s) {
+        public boolean shallShow(final DocumentInfo s) {
             return true;
         }
     };

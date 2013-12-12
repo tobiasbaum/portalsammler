@@ -22,19 +22,20 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 
-public class DocumentIndex {
+public final class DocumentIndex {
 
-    private final TreeMap<DocumentInfo, Map<String, String>> documents = new TreeMap<DocumentInfo, Map<String, String>>();
+    private final TreeMap<DocumentInfo, Map<String, String>> documents =
+            new TreeMap<DocumentInfo, Map<String, String>>();
 
     public Set<DocumentInfo> getAllDocuments() {
         return this.documents.keySet();
     }
 
-    public Map<String, String> getFilePosition(DocumentInfo id) {
+    public Map<String, String> getFilePosition(final DocumentInfo id) {
         return this.documents.get(id);
     }
 
-    public void putDocument(DocumentInfo id, Map<String, String> filePosition) {
+    public void putDocument(final DocumentInfo id, final Map<String, String> filePosition) {
         this.documents.put(id, filePosition);
     }
 

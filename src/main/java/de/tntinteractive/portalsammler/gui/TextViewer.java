@@ -31,7 +31,7 @@ public class TextViewer extends JFrame {
     private static final long serialVersionUID = -159615766685799753L;
 
 
-    public TextViewer(String title, String text) {
+    public TextViewer(final String title, final String text) {
         super(title);
 
         final JTextArea contentArea = new JTextArea(text);

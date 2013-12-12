@@ -24,7 +24,7 @@ import java.util.Date;
 
 import org.junit.Test;
 
-public class DocumentInfoTest {
+public final class DocumentInfoTest {
 
     @Test
     public void testAddKeywords() {
@@ -47,7 +47,7 @@ public class DocumentInfoTest {
         assertEquals("asdf jklö 123 456 78 9", i.getKeywords());
     }
 
-    private static void checkAsStringAndParse(String source, long date, String keywords) {
+    private static void checkAsStringAndParse(final String source, final long date, final String keywords) {
         final DocumentInfo d1 = DocumentInfo.create(source, DocumentFormat.PDF);
         d1.setDate(new Date(date));
         d1.addKeywords(keywords);

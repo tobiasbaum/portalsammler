@@ -45,29 +45,31 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.CC;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class GeneratedPasswordDialog extends JDialog {
+import de.tntinteractive.portalsammler.engine.UserInteraction;
+
+public final class GeneratedPasswordDialog extends JDialog {
 
     private static final long serialVersionUID = -1276429595586985556L;
 
-    public GeneratedPasswordDialog(final UserInteraction gui, String key) {
+    public GeneratedPasswordDialog(final UserInteraction gui, final String key) {
         this.setTitle("Neues Passwort generiert");
         this.setModal(true);
 
         final JLabel text = new JLabel(
-                "<html><body>" +
-                "Es wurde ein neues Passwort generiert:<br/>" +
-                "<br/>" +
-                "<b><center>" + key.replace("<", "&lt;") + "</center></b>" +
-        		"<br/>" +
-        		"Mit diesem Passwort sind alle gespeicherten Daten geschützt. Wenn es verloren<br/>" +
-        		" geht, ist kein Zugriff auf die gespeicherten Daten mehr möglich.</br>" +
-        		"<br/>" +
-        		"Der unten sichtbare QR-Code enthält das Passwort in codierter Form. Sie können ihn<br/>" +
-        		" ausdrucken und über eine Webcam o.ä. einlesen, damit sie sich das Passwort nicht<br/>" +
-        		" merken und wiederholt eintippen müssen. Stellen Sie aber sicher, dass der QR-Code<br/>" +
-        		" getrennt von Ihrem Computer gelagert wird, um einen gleichzeitigen Zugriff z.B. durch<br/>" +
-        		" Einbrecher auszuschließen.<br/>" +
-                "</body></html>");
+                "<html><body>"
+                + "Es wurde ein neues Passwort generiert:<br/>"
+                + "<br/>"
+                + "<b><center>" + key.replace("<", "&lt;") + "</center></b>"
+                + "<br/>"
+                + "Mit diesem Passwort sind alle gespeicherten Daten geschützt. Wenn es verloren<br/>"
+                + " geht, ist kein Zugriff auf die gespeicherten Daten mehr möglich.</br>"
+                + "<br/>"
+                + "Der unten sichtbare QR-Code enthält das Passwort in codierter Form. Sie können ihn<br/>"
+                + " ausdrucken und über eine Webcam o.ä. einlesen, damit sie sich das Passwort nicht<br/>"
+                + " merken und wiederholt eintippen müssen. Stellen Sie aber sicher, dass der QR-Code<br/>"
+                + " getrennt von Ihrem Computer gelagert wird, um einen gleichzeitigen Zugriff z.B. durch<br/>"
+                + " Einbrecher auszuschließen.<br/>"
+                + "</body></html>");
 
         final Image qrImage = this.createQrImage(gui, key);
         final JLabel qrCode;
@@ -80,7 +82,7 @@ public class GeneratedPasswordDialog extends JDialog {
         final JButton printButton = new JButton("Passwort und QR-Code drucken");
         printButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 GeneratedPasswordDialog.this.print(gui);
             }
         });
@@ -88,7 +90,7 @@ public class GeneratedPasswordDialog extends JDialog {
         final JButton closeButton = new JButton("Schließen");
         closeButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 GeneratedPasswordDialog.this.setVisible(false);
             }
         });
@@ -106,11 +108,13 @@ public class GeneratedPasswordDialog extends JDialog {
         this.setLocationRelativeTo(this.getOwner());
     }
 
-    protected void print(UserInteraction gui) {
+    protected void print(final UserInteraction gui) {
         final PrinterJob job = PrinterJob.getPrinterJob();
         job.setPrintable(new Printable() {
             @Override
-            public int print(Graphics graphics, PageFormat page, int pageIndex) throws PrinterException {
+            public int print(final Graphics graphics, final PageFormat page, final int pageIndex)
+                throws PrinterException {
+
                 if (pageIndex > 0) {
                     return NO_SUCH_PAGE;
                 }
@@ -132,7 +136,7 @@ public class GeneratedPasswordDialog extends JDialog {
         }
     }
 
-    private BufferedImage createQrImage(UserInteraction gui, String key) {
+    private BufferedImage createQrImage(final UserInteraction gui, final String key) {
         try {
             final QRCodeWriter w = new QRCodeWriter();
             final BitMatrix m = w.encode(key, BarcodeFormat.QR_CODE, 200, 200);

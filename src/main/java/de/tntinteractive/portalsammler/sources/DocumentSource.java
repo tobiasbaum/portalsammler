@@ -40,7 +40,7 @@ import com.gargoylesoftware.htmlunit.RefreshHandler;
 import de.tntinteractive.portalsammler.engine.ByPartialButtonText;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
-import de.tntinteractive.portalsammler.gui.UserInteraction;
+import de.tntinteractive.portalsammler.engine.UserInteraction;
 
 public abstract class DocumentSource {
 
@@ -48,7 +48,7 @@ public abstract class DocumentSource {
 
     private final String id;
 
-    public DocumentSource(String id) {
+    public DocumentSource(final String id) {
         this.id = id;
     }
 
@@ -72,7 +72,7 @@ public abstract class DocumentSource {
         private final ImmediateRefreshHandler immediateHandler = new ImmediateRefreshHandler();
 
         @Override
-        public void handleRefresh(Page page, URL url, int seconds) throws IOException {
+        public void handleRefresh(final Page page, final URL url, final int seconds) throws IOException {
             //einige Seiten nutzen den refresh für echte Navigation, andere für Timeouts
             //  da echte Navigation eher kurz ist und Timeouts eher lang, wird hier über den Daumen gepeilt,
             //  was gewollt ist. Echte Navigation wird sofort vollzogen und Timeouts nie.
@@ -83,7 +83,7 @@ public abstract class DocumentSource {
 
     }
 
-    protected final WebDriver createDriver(String url) {
+    protected final WebDriver createDriver(final String url) {
         final HtmlUnitDriver driver = new HtmlUnitDriver(true) {
             {
                 this.getWebClient().setRefreshHandler(new AllOrNothingRefreshHandler());
@@ -95,29 +95,29 @@ public abstract class DocumentSource {
         return driver;
     }
 
-    protected static boolean startsWith(String name, String prefix) {
+    protected static boolean startsWith(final String name, final String prefix) {
         return name != null && name.startsWith(prefix);
     }
 
-    protected static void clickLink(final WebDriver driver, String partialText) {
+    protected static void clickLink(final WebDriver driver, final String partialText) {
         final WebElement link = driver.findElement(By.partialLinkText(partialText));
         link.click();
     }
 
-    protected static void clickButton(final WebDriver driver, String partialText) {
+    protected static void clickButton(final WebDriver driver, final String partialText) {
         final WebElement button = driver.findElement(byPartialButtonText(partialText));
         button.click();
     }
 
-    protected static void waitForPresence(WebDriver driver, By by) {
+    protected static void waitForPresence(final WebDriver driver, final By by) {
         (new WebDriverWait(driver, WAIT_TIME)).until(ExpectedConditions.presenceOfElementLocated(by));
     }
 
-    protected static By byPartialButtonText(String text) {
+    protected static By byPartialButtonText(final String text) {
         return new ByPartialButtonText(text);
     }
 
-    protected static Date parseDate(String text) throws ParseException {
+    protected static Date parseDate(final String text) throws ParseException {
         return new SimpleDateFormat("dd.MM.yyyy").parse(text);
     }
 

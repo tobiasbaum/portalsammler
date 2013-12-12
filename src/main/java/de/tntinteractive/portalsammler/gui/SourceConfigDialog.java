@@ -61,7 +61,7 @@ public class SourceConfigDialog extends JDialog {
     private JButton removeButton;
 
 
-    public SourceConfigDialog(Gui gui, SecureStore store) {
+    public SourceConfigDialog(final Gui gui, final SecureStore store) {
         this.setTitle("Quellen-Konfiguration");
         this.setModal(true);
         this.setMinimumSize(new Dimension(500, 350));
@@ -73,7 +73,7 @@ public class SourceConfigDialog extends JDialog {
         this.idCombo = new JComboBox<String>();
         this.idCombo.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 SourceConfigDialog.this.updateSettingPanel();
             }
         });
@@ -108,7 +108,7 @@ public class SourceConfigDialog extends JDialog {
         final JButton button = new JButton("OK");
         button.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 SourceConfigDialog.this.handleOk();
             }
         });
@@ -131,7 +131,7 @@ public class SourceConfigDialog extends JDialog {
         final JButton button = new JButton("Abbrechen");
         button.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 SourceConfigDialog.this.setVisible(false);
             }
         });
@@ -159,15 +159,15 @@ public class SourceConfigDialog extends JDialog {
             input.setName(key.getKeyString());
             input.getDocument().addDocumentListener(new DocumentListener() {
                 @Override
-                public void removeUpdate(DocumentEvent e) {
+                public void removeUpdate(final DocumentEvent e) {
                     SourceConfigDialog.this.handleSettingChanged(settings, input);
                 }
                 @Override
-                public void insertUpdate(DocumentEvent e) {
+                public void insertUpdate(final DocumentEvent e) {
                     SourceConfigDialog.this.handleSettingChanged(settings, input);
                 }
                 @Override
-                public void changedUpdate(DocumentEvent e) {
+                public void changedUpdate(final DocumentEvent e) {
                     SourceConfigDialog.this.handleSettingChanged(settings, input);
                 }
             });
@@ -179,7 +179,7 @@ public class SourceConfigDialog extends JDialog {
         this.settingPanel.repaint();
     }
 
-    private void handleSettingChanged(SourceSettings settings, JTextField input) {
+    private void handleSettingChanged(final SourceSettings settings, final JTextField input) {
         final String text = input.getText();
         final String key = input.getName();
         settings.set(new SettingKey(key), text);
@@ -200,7 +200,7 @@ public class SourceConfigDialog extends JDialog {
         }
     }
 
-    private void updateIdCombo(String idToSelect) {
+    private void updateIdCombo(final String idToSelect) {
         this.updateIdCombo();
         this.idCombo.setSelectedItem(idToSelect);
     }
@@ -209,7 +209,7 @@ public class SourceConfigDialog extends JDialog {
         final JButton button = new JButton("Neue Quelle hinzufügen...");
         button.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 SourceConfigDialog.this.newConfiguration();
             }
         });
@@ -239,7 +239,8 @@ public class SourceConfigDialog extends JDialog {
             if (existingSettings == null) {
                 break;
             }
-            JOptionPane.showMessageDialog(this, "Die ID " + id + " wurde bereits für eine andere Quelle vergeben.", "Doppelte ID", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Die ID " + id + " wurde bereits für eine andere Quelle vergeben.",
+                    "Doppelte ID", JOptionPane.ERROR_MESSAGE);
         }
 
         final SourceSettings settings = new SourceSettings();
@@ -253,7 +254,7 @@ public class SourceConfigDialog extends JDialog {
         this.removeButton = new JButton("Quelle löschen");
         this.removeButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 SourceConfigDialog.this.removeConfiguration();
             }
         });

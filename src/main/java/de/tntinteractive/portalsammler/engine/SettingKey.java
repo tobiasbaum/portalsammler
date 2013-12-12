@@ -23,13 +23,13 @@ import java.io.Serializable;
 /**
  * Schlüssel für Einstellungen zu einer Quelle.
  */
-public class SettingKey implements Serializable {
+public final class SettingKey implements Serializable {
 
     private static final long serialVersionUID = 7565991322115885250L;
 
     private final String key;
 
-    public SettingKey(String key) {
+    public SettingKey(final String key) {
         this.key = key;
     }
 
@@ -39,7 +39,7 @@ public class SettingKey implements Serializable {
     }
 
     @Override
-    public boolean equals(Object o) {
+    public boolean equals(final Object o) {
         if (!(o instanceof SettingKey)) {
             return false;
         }

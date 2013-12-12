@@ -35,19 +35,20 @@ import de.tntinteractive.portalsammler.engine.DocumentInfo;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
-import de.tntinteractive.portalsammler.gui.UserInteraction;
+import de.tntinteractive.portalsammler.engine.UserInteraction;
 
-public class HanVBSourceV1 extends DocumentSource {
+public final class HanVBSourceV1 extends DocumentSource {
 
     static final SettingKey USER = new SettingKey("VR-Kennung");
     static final SettingKey PASSWORD = new SettingKey("Online-PIN");
 
-    public HanVBSourceV1(String id) {
+    public HanVBSourceV1(final String id) {
         super(id);
     }
 
     @Override
-    public Pair<Integer, Integer> poll(SourceSettings settings, UserInteraction gui, SecureStore store) throws Exception {
+    public Pair<Integer, Integer> poll(final SourceSettings settings, final UserInteraction gui,
+            final SecureStore store) throws Exception {
         final WebDriver driver = this.createDriver("https://www.hanvb.de/ptlweb/WebPortal?bankid=0744");
 
         final WebElement userField = driver.findElement(By.id("vrkennungalias"));
@@ -110,11 +111,11 @@ public class HanVBSourceV1 extends DocumentSource {
         return Pair.of(newDocs, knownDocs);
     }
 
-    private boolean isNotLabeled(WebElement div) {
+    private boolean isNotLabeled(final WebElement div) {
         return !this.isLabeled(div, "");
     }
 
-    private boolean isLabeled(WebElement div, String string) {
+    private boolean isLabeled(final WebElement div, final String string) {
         for (final WebElement label : div.findElements(By.tagName("label"))) {
             if (label.getText().contains(string)) {
                 return true;
@@ -123,7 +124,7 @@ public class HanVBSourceV1 extends DocumentSource {
         return false;
     }
 
-    private Date parseTimestamp(String time) throws ParseException {
+    private Date parseTimestamp(final String time) throws ParseException {
         return new SimpleDateFormat("dd.MM.yyyy HH:mm").parse(time);
     }
 

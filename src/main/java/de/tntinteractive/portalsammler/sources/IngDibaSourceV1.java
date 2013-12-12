@@ -34,21 +34,21 @@ import de.tntinteractive.portalsammler.engine.FileDownloader;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
-import de.tntinteractive.portalsammler.gui.UserInteraction;
+import de.tntinteractive.portalsammler.engine.UserInteraction;
 
-public class IngDibaSourceV1 extends DocumentSource {
+public final class IngDibaSourceV1 extends DocumentSource {
 
     static final SettingKey USER = new SettingKey("Konto/Depotnummer");
     static final SettingKey PASSWORD = new SettingKey("Passwort");
     static final SettingKey CODE = new SettingKey("Secure Code");
 
-    public IngDibaSourceV1(String id) {
+    public IngDibaSourceV1(final String id) {
         super(id);
     }
 
     @Override
-    public Pair<Integer, Integer> poll(SourceSettings settings, UserInteraction gui,
-            SecureStore store) throws Exception {
+    public Pair<Integer, Integer> poll(final SourceSettings settings, final UserInteraction gui,
+            final SecureStore store) throws Exception {
         final WebDriver driver = this.createDriver("https://banking.ing-diba.de/app/login");
 
         final WebElement userField = driver.findElement(By.name("view:kontonummer:border:border_body:kontonummer"));
@@ -117,7 +117,7 @@ public class IngDibaSourceV1 extends DocumentSource {
         return Pair.of(newDocs, knownDocs);
     }
 
-    private boolean isDate(String text) {
+    private boolean isDate(final String text) {
         return text.matches("[0-3][0-9]\\.[0-1][0-9]\\.[0-9][0-9][0-9][0-9]");
     }
 

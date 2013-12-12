@@ -19,33 +19,32 @@
 package de.tntinteractive.portalsammler.engine;
 
 import static org.junit.Assert.fail;
-import de.tntinteractive.portalsammler.gui.UserInteraction;
 
 public class FailAllGui implements UserInteraction {
 
     @Override
-    public String askForPassword(StorageLayer storeDirectory) {
+    public String askForPassword(final StorageLayer storeDirectory) {
         fail("askForPassword not expected");
         return null;
     }
 
     @Override
-    public void showGeneratedPassword(String key) {
+    public void showGeneratedPassword(final String key) {
         fail("showGeneratedPassword not expected");
     }
 
     @Override
-    public void showError(Throwable e) {
+    public void showError(final Throwable e) {
         fail("showError not expected");
     }
 
     @Override
-    public void showMainGui(SecureStore store) {
+    public void showMainGui(final SecureStore store) {
         fail("showMainGui not expected");
     }
 
     @Override
-    public String askForSetting(SettingKey key) {
+    public String askForSetting(final SettingKey key) {
         fail("askForSetting not expected");
         return null;
     }

@@ -18,19 +18,19 @@
  */
 package de.tntinteractive.portalsammler;
 
-public class ValueWrapper<T> {
+public final class ValueWrapper<T> {
 
     private T value;
 
-    private ValueWrapper(T value) {
+    private ValueWrapper(final T value) {
         this.value = value;
     }
 
-    public static <V> ValueWrapper<V> create(V value) {
+    public static <V> ValueWrapper<V> create(final V value) {
         return new ValueWrapper<V>(value);
     }
 
-    public void set(T value) {
+    public void set(final T value) {
         this.value = value;
     }
 

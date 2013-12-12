@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class CryptoHelperTest {
+public final class CryptoHelperTest {
 
     @Test
     public void testKeyEncoding() {
@@ -31,7 +31,7 @@ public class CryptoHelperTest {
         checkKeyEncoding("12345690asdfasdfasdfasdf");
     }
 
-    private static void checkKeyEncoding(String string) {
+    private static void checkKeyEncoding(final String string) {
         assertEquals(string, CryptoHelper.keyToString(CryptoHelper.keyFromString(string)));
     }
 

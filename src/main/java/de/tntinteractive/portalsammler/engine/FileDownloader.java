@@ -37,12 +37,12 @@ import org.openqa.selenium.Cookie;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-public class FileDownloader {
+public final class FileDownloader {
 
     private final WebDriver driver;
-    private int httpStatusOfLastDownloadAttempt = 0;
+    private int httpStatusOfLastDownloadAttempt;
 
-    public FileDownloader(WebDriver driver) {
+    public FileDownloader(final WebDriver driver) {
         this.driver = driver;
     }
 
@@ -50,7 +50,7 @@ public class FileDownloader {
      * Lädt die Datei aus dem href-Attribut runter und gibt den Inhalt als Byte-Array zurück.
      * Ist also nur für Dateien bis zu einer gewissen Größe sinnvoll.
      */
-    public byte[] downloadFile(WebElement element) throws IOException, URISyntaxException {
+    public byte[] downloadFile(final WebElement element) throws IOException, URISyntaxException {
         return this.downloader(element, "href");
     }
 
@@ -64,10 +64,11 @@ public class FileDownloader {
     /**
      * Load in all the cookies WebDriver currently knows about so that we can mimic the browser cookie state
      */
-    private BasicCookieStore mimicCookieState(Set<Cookie> seleniumCookieSet) {
+    private BasicCookieStore mimicCookieState(final Set<Cookie> seleniumCookieSet) {
         final BasicCookieStore mimicWebDriverCookieStore = new BasicCookieStore();
         for (final Cookie seleniumCookie : seleniumCookieSet) {
-            final BasicClientCookie duplicateCookie = new BasicClientCookie(seleniumCookie.getName(), seleniumCookie.getValue());
+            final BasicClientCookie duplicateCookie =
+                    new BasicClientCookie(seleniumCookie.getName(), seleniumCookie.getValue());
             duplicateCookie.setDomain(seleniumCookie.getDomain());
             duplicateCookie.setSecure(seleniumCookie.isSecure());
             duplicateCookie.setExpiryDate(seleniumCookie.getExpiry());
@@ -81,7 +82,7 @@ public class FileDownloader {
     /**
      * Lädt die Datei runter, die im übergebenen Attribut steht und liefert ihren Inhalt.
      */
-    private byte[] downloader(WebElement element, String attribute) throws IOException, URISyntaxException {
+    private byte[] downloader(final WebElement element, final String attribute) throws IOException, URISyntaxException {
         final String fileToDownloadLocation = element.getAttribute(attribute);
         if (fileToDownloadLocation.trim().equals("")) {
             throw new NullPointerException("The element you have specified does not link to anything!");
@@ -92,15 +93,14 @@ public class FileDownloader {
         final HttpClient client = HttpClientBuilder.create().build();
         final BasicHttpContext localContext = new BasicHttpContext();
 
-        localContext.setAttribute(HttpClientContext.COOKIE_STORE, this.mimicCookieState(this.driver.manage().getCookies()));
+        localContext.setAttribute(HttpClientContext.COOKIE_STORE,
+                this.mimicCookieState(this.driver.manage().getCookies()));
 
         final HttpGet httpget = new HttpGet(fileToDownload.toURI());
         httpget.setConfig(RequestConfig.custom().setRedirectsEnabled(true).build());
 
         final HttpResponse response = client.execute(httpget, localContext);
         this.httpStatusOfLastDownloadAttempt = response.getStatusLine().getStatusCode();
-        //TEST
-        System.out.println("status code = " + this.httpStatusOfLastDownloadAttempt);
         try {
             return IOUtils.toByteArray(response.getEntity().getContent());
         } finally {

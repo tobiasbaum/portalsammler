@@ -32,10 +32,8 @@ import java.util.zip.InflaterOutputStream;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bouncycastle.crypto.io.CipherInputStream;
-import org.bouncycastle.crypto.io.CipherOutputStream;
 
-public class SecureStore {
+public final class SecureStore {
 
     private StorageLayer storage;
     private final SecureRandom srand;
@@ -52,13 +50,13 @@ public class SecureStore {
     private int currentFileIndex;
 
 
-    private SecureStore(StorageLayer storage, SecureRandom srand, byte[] key) {
+    private SecureStore(final StorageLayer storage, final SecureRandom srand, final byte[] key) {
         this.storage = storage;
         this.srand = srand;
         this.key = key;
     }
 
-    public static SecureStore createEmpty(StorageLayer storage, SecureRandom srand, byte[] key) {
+    public static SecureStore createEmpty(final StorageLayer storage, final SecureRandom srand, final byte[] key) {
         final SecureStore ret = new SecureStore(storage, srand, key);
         ret.settingSalt = ret.srand.nextInt();
         ret.currentOutputBuffer = new ByteArrayOutputStream();
@@ -66,7 +64,7 @@ public class SecureStore {
         return ret;
     }
 
-    public static SecureStore readFrom(final StorageLayer storage, SecureRandom srand, byte[] key)
+    public static SecureStore readFrom(final StorageLayer storage, final SecureRandom srand, final byte[] key)
         throws IOException, GeneralSecurityException {
 
         final SecureStore ret = new SecureStore(storage, srand, key);
@@ -92,8 +90,8 @@ public class SecureStore {
         this.currentFileIndex--;
     }
 
-    private static void readSettings(final StorageLayer storage, SecureRandom srand, byte[] key, final SecureStore ret)
-            throws IOException {
+    private static void readSettings(final StorageLayer storage, final SecureRandom srand, final byte[] key,
+            final SecureStore ret) throws IOException {
         final InputStream stream = storage.openInputStream("meta");
         try {
             final Pair<Integer, MapReader> saltAndReader = createMapReader(stream, srand, key);
@@ -112,8 +110,8 @@ public class SecureStore {
         }
     }
 
-    private static void readIndex(final StorageLayer storage, SecureRandom srand, byte[] key, final SecureStore ret)
-            throws IOException {
+    private static void readIndex(final StorageLayer storage, final SecureRandom srand, final byte[] key,
+            final SecureStore ret) throws IOException {
         final InputStream stream = storage.openInputStream("index");
         try {
             final Pair<Integer, MapReader> saltAndReader = createMapReader(stream, srand, key);
@@ -132,10 +130,10 @@ public class SecureStore {
         }
     }
 
-    private static Pair<Integer, MapReader> createMapReader(InputStream stream, SecureRandom srand, byte[] key)
-        throws IOException {
+    private static Pair<Integer, MapReader> createMapReader(final InputStream stream, final SecureRandom srand,
+            final byte[] key) throws IOException {
 
-        final CipherInputStream cipher = CryptoHelper.createAesDecryptStream(stream, key, srand);
+        final InputStream cipher = CryptoHelper.createAesDecryptStream(stream, key, srand);
         final int salt = readInt(cipher);
 
         final InflaterInputStream inflate = new InflaterInputStream(cipher);
@@ -146,17 +144,17 @@ public class SecureStore {
         return this.settings;
     }
 
-    public boolean containsDocument(DocumentInfo info) {
+    public boolean containsDocument(final DocumentInfo info) {
         return this.index.getAllDocuments().contains(info);
     }
 
-    public void storeDocument(DocumentInfo metadata, byte[] content) throws IOException {
+    public void storeDocument(final DocumentInfo metadata, final byte[] content) throws IOException {
         final Map<String, String> fileOffset = this.saveContent(content);
         fileOffset.put("u", "u");
         this.index.putDocument(metadata, fileOffset);
     }
 
-    private Map<String, String> saveContent(byte[] content) throws IOException {
+    private Map<String, String> saveContent(final byte[] content) throws IOException {
         this.checkCurrentBufferSize();
 
         final int offset = this.currentOutputBuffer.size();
@@ -182,10 +180,12 @@ public class SecureStore {
         this.encryptAndWrite(this.key, this.currentOutputBuffer.toByteArray(), this.getCurrentFilename());
     }
 
-    private void encryptAndWrite(byte[] encryptionKey, byte[] data, String filename) throws IOException {
+    private void encryptAndWrite(final byte[] encryptionKey, final byte[] data, final String filename)
+        throws IOException {
+
         final OutputStream out = this.storage.openOutputStream(filename);
         try {
-            final CipherOutputStream cipher = CryptoHelper.createAesEncryptStream(out, encryptionKey, this.srand);
+            final OutputStream cipher = CryptoHelper.createAesEncryptStream(out, encryptionKey, this.srand);
             cipher.write(data);
             cipher.close();
         } finally {
@@ -203,7 +203,7 @@ public class SecureStore {
         return String.format("data.%08d", this.currentFileIndex);
     }
 
-    private byte[] compress(byte[] content) throws IOException {
+    private byte[] compress(final byte[] content) throws IOException {
         final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
         final DeflaterOutputStream deflate = new DeflaterOutputStream(buffer);
         deflate.write(content);
@@ -211,7 +211,7 @@ public class SecureStore {
         return buffer.toByteArray();
     }
 
-    public byte[] getDocument(DocumentInfo metadata) throws IOException {
+    public byte[] getDocument(final DocumentInfo metadata) throws IOException {
         final Map<String, String> pointer = this.index.getFilePosition(metadata);
         final byte[] buffer = this.readAndDecrypt(pointer.get("f"));
         final int offset = Integer.parseInt(pointer.get("o"));
@@ -225,11 +225,11 @@ public class SecureStore {
         return result.toByteArray();
     }
 
-    private byte[] readAndDecrypt(String filename) throws IOException {
+    private byte[] readAndDecrypt(final String filename) throws IOException {
         final InputStream input = this.storage.openInputStream(filename);
         try {
             final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            final CipherInputStream cipher = CryptoHelper.createAesDecryptStream(input, this.key, this.srand);
+            final InputStream cipher = CryptoHelper.createAesDecryptStream(input, this.key, this.srand);
             IOUtils.copy(cipher, buffer);
             return buffer.toByteArray();
         } finally {
@@ -271,8 +271,8 @@ public class SecureStore {
         }
     }
 
-    private MapWriter createMapWriterAndWriteSalt(final OutputStream out, int salt) throws IOException {
-        final CipherOutputStream cipher = CryptoHelper.createAesEncryptStream(out, this.key, this.srand);
+    private MapWriter createMapWriterAndWriteSalt(final OutputStream out, final int salt) throws IOException {
+        final OutputStream cipher = CryptoHelper.createAesEncryptStream(out, this.key, this.srand);
         writeInt(cipher, salt);
 
         final DeflaterOutputStream deflate = new DeflaterOutputStream(cipher);
@@ -280,15 +280,15 @@ public class SecureStore {
         return w;
     }
 
-    private static int readInt(InputStream stream) throws IOException {
+    private static int readInt(final InputStream stream) throws IOException {
         final int ch1 = stream.read();
         final int ch2 = stream.read();
         final int ch3 = stream.read();
         final int ch4 = stream.read();
-        return ((ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0));
+        return (ch1 << 24) + (ch2 << 16) + (ch3 << 8) + (ch4 << 0);
     }
 
-    private static void writeInt(OutputStream stream, int v) throws IOException {
+    private static void writeInt(final OutputStream stream, final int v) throws IOException {
         stream.write((v >>> 24) & 0xFF);
         stream.write((v >>> 16) & 0xFF);
         stream.write((v >>>  8) & 0xFF);
@@ -299,12 +299,12 @@ public class SecureStore {
         return this.index;
     }
 
-    public boolean isRead(DocumentInfo di) {
+    public boolean isRead(final DocumentInfo di) {
         final Map<String, String> fileInfo = this.index.getFilePosition(di);
         return fileInfo == null || fileInfo.get("u") == null;
     }
 
-    public void markAsRead(DocumentInfo di) {
+    public void markAsRead(final DocumentInfo di) {
         final Map<String, String> fileInfo = this.index.getFilePosition(di);
         if (fileInfo != null) {
             fileInfo.remove("u");
@@ -320,7 +320,7 @@ public class SecureStore {
      * Dieser Store darf im Anschluss nicht mehr genutzt werden.
      * Es wird ein neuer Store mit dem neuen Schlüssel erzeugt und zurückgeliefert.
      */
-    public SecureStore recrypt(byte[] newKey) throws IOException, GeneralSecurityException {
+    public SecureStore recrypt(final byte[] newKey) throws IOException, GeneralSecurityException {
         this.createNewFiles(newKey);
         this.removeOldFiles();
         this.renameNewFiles();
@@ -330,7 +330,7 @@ public class SecureStore {
         return newStore;
     }
 
-    private void createNewFiles(byte[] newKey) throws IOException {
+    private void createNewFiles(final byte[] newKey) throws IOException {
         for (final String file : this.storage.getAllFiles()) {
             final byte[] data = this.readAndDecrypt(file);
             this.encryptAndWrite(newKey, data, file + ".tmp");

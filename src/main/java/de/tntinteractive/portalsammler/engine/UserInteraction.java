@@ -16,11 +16,8 @@
     You should have received a copy of the GNU General Public License
     along with Portalsammler.  If not, see <http://www.gnu.org/licenses/>.
  */
-package de.tntinteractive.portalsammler.gui;
+package de.tntinteractive.portalsammler.engine;
 
-import de.tntinteractive.portalsammler.engine.SecureStore;
-import de.tntinteractive.portalsammler.engine.SettingKey;
-import de.tntinteractive.portalsammler.engine.StorageLayer;
 
 public interface UserInteraction {
 

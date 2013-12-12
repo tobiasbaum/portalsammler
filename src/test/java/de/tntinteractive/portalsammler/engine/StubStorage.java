@@ -29,12 +29,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class StubStorage implements StorageLayer {
+public final class StubStorage implements StorageLayer {
 
     private boolean exists;
     private final Map<String, byte[]> files = new HashMap<String, byte[]>();
 
-    public StubStorage(boolean exists) {
+    public StubStorage(final boolean exists) {
         this.exists = exists;
     }
 
@@ -43,7 +43,7 @@ public class StubStorage implements StorageLayer {
     }
 
     @Override
-    public InputStream openInputStream(String name) throws IOException {
+    public InputStream openInputStream(final String name) throws IOException {
         if (!this.exists) {
             throw new FileNotFoundException("directory does not exist");
         }
@@ -65,7 +65,7 @@ public class StubStorage implements StorageLayer {
             private final ByteArrayOutputStream buffer = new ByteArrayOutputStream();
 
             @Override
-            public void write(int b) throws IOException {
+            public void write(final int b) throws IOException {
                 if (this.closed) {
                     throw new IOException("already closed");
                 }
@@ -95,7 +95,7 @@ public class StubStorage implements StorageLayer {
     }
 
     @Override
-    public boolean fileExists(String name) {
+    public boolean fileExists(final String name) {
         return this.exists && this.files.containsKey(name);
     }
 
@@ -105,7 +105,7 @@ public class StubStorage implements StorageLayer {
     }
 
     @Override
-    public void delete(String name) throws IOException {
+    public void delete(final String name) throws IOException {
         if (!this.files.containsKey(name)) {
             throw new IOException();
         }
@@ -113,7 +113,7 @@ public class StubStorage implements StorageLayer {
     }
 
     @Override
-    public void rename(String oldName, String newName) throws IOException {
+    public void rename(final String oldName, final String newName) throws IOException {
         if (!this.files.containsKey(oldName)) {
             throw new IOException();
         }

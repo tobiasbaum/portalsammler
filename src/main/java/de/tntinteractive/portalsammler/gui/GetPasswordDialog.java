@@ -45,7 +45,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.CC;
 import com.jgoodies.forms.layout.FormLayout;
 
-public class GetPasswordDialog extends JDialog {
+public final class GetPasswordDialog extends JDialog {
 
     private static final long serialVersionUID = 8141959875687165896L;
 
@@ -56,7 +56,7 @@ public class GetPasswordDialog extends JDialog {
     private Timer timer;
 
 
-    public GetPasswordDialog(String storeIdentifier) {
+    public GetPasswordDialog(final String storeIdentifier) {
         this.setTitle("Passwortprüfung");
         this.setModal(true);
         this.setDefaultCloseOperation(DISPOSE_ON_CLOSE);
@@ -68,7 +68,7 @@ public class GetPasswordDialog extends JDialog {
             webcamPanel = new WebcamPanel(this.webcam);
             this.timer = new Timer(200, new ActionListener() {
                 @Override
-                public void actionPerformed(ActionEvent e) {
+                public void actionPerformed(final ActionEvent e) {
                     GetPasswordDialog.this.tryScan();
                 }
             });
@@ -104,7 +104,7 @@ public class GetPasswordDialog extends JDialog {
         final JButton ret = new JButton("OK");
         ret.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 GetPasswordDialog.this.password = String.valueOf(GetPasswordDialog.this.passwordField.getPassword());
                 GetPasswordDialog.this.close();
             }
@@ -116,7 +116,7 @@ public class GetPasswordDialog extends JDialog {
         final JButton ret = new JButton("Abbrechen");
         ret.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 GetPasswordDialog.this.close();
             }
         });
@@ -152,7 +152,7 @@ public class GetPasswordDialog extends JDialog {
             //Webcam noch eine Zeit offen lassen, damit sie gesperrt bleibt
             final Timer delayedClose = new Timer(5000, new ActionListener() {
                 @Override
-                public void actionPerformed(ActionEvent e) {
+                public void actionPerformed(final ActionEvent e) {
                     GetPasswordDialog.this.webcam.close();
                 }
             });

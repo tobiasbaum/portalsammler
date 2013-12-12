@@ -24,19 +24,22 @@ import de.tntinteractive.portalsammler.sources.HanVBFactoryV1;
 import de.tntinteractive.portalsammler.sources.IngDibaFactoryV1;
 import de.tntinteractive.portalsammler.sources.MlpFactoryV1;
 
-public class SourceFactories {
+public final class SourceFactories {
 
     public static final SettingKey TYPE = new SettingKey("type");
 
+    private SourceFactories() {
+    }
+
     public static DocumentSourceFactory[] getFactories() {
         return new DocumentSourceFactory[] {
-                new IngDibaFactoryV1(),
-                new HanVBFactoryV1(),
-                new MlpFactoryV1()
+            new IngDibaFactoryV1(),
+            new HanVBFactoryV1(),
+            new MlpFactoryV1()
         };
     }
 
-    public static DocumentSourceFactory getByName(String name) {
+    public static DocumentSourceFactory getByName(final String name) {
         for (final DocumentSourceFactory f : getFactories()) {
             if (f.getName().equals(name)) {
                 return f;

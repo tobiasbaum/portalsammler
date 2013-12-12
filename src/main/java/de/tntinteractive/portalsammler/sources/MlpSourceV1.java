@@ -31,19 +31,20 @@ import de.tntinteractive.portalsammler.engine.FileDownloader;
 import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
-import de.tntinteractive.portalsammler.gui.UserInteraction;
+import de.tntinteractive.portalsammler.engine.UserInteraction;
 
-public class MlpSourceV1 extends DocumentSource {
+public final class MlpSourceV1 extends DocumentSource {
 
     static final SettingKey USER = new SettingKey("Benutzerkennung");
     static final SettingKey PASSWORD = new SettingKey("Online-PIN");
 
-    public MlpSourceV1(String id) {
+    public MlpSourceV1(final String id) {
         super(id);
     }
 
     @Override
-    public Pair<Integer, Integer> poll(SourceSettings settings, UserInteraction gui, SecureStore store) throws Exception {
+    public Pair<Integer, Integer> poll(final SourceSettings settings, final UserInteraction gui,
+            final SecureStore store) throws Exception {
         final WebDriver driver = this.createDriver("https://financepilot-pe.mlp.de/p04pepe/entry?rzid=XC&rzbk=0752");
 
         final WebElement userField = driver.findElement(By.id("txtBenutzerkennung"));

@@ -24,7 +24,7 @@ import java.util.List;
 import de.tntinteractive.portalsammler.engine.SettingKey;
 
 
-public class IngDibaFactoryV1 extends DocumentSourceFactory {
+public final class IngDibaFactoryV1 extends DocumentSourceFactory {
 
     public IngDibaFactoryV1() {
         super("ING-DiBa V1");
@@ -39,7 +39,7 @@ public class IngDibaFactoryV1 extends DocumentSourceFactory {
     }
 
     @Override
-    public DocumentSource create(String id) {
+    public DocumentSource create(final String id) {
         return new IngDibaSourceV1(id);
     }
 

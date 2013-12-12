@@ -18,18 +18,18 @@
  */
 package de.tntinteractive.portalsammler.engine;
 
-public class OrFilter extends DocumentFilter {
+public final class OrFilter extends DocumentFilter {
 
     private final DocumentFilter first;
     private final DocumentFilter second;
 
-    public OrFilter(DocumentFilter first, DocumentFilter second) {
+    public OrFilter(final DocumentFilter first, final DocumentFilter second) {
         this.first = first;
         this.second = second;
     }
 
     @Override
-    public boolean shallShow(DocumentInfo s) {
+    public boolean shallShow(final DocumentInfo s) {
         return this.first.shallShow(s) || this.second.shallShow(s);
     }
 

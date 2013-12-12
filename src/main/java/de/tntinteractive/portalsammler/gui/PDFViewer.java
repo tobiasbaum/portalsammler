@@ -47,7 +47,7 @@ public class PDFViewer extends JFrame {
     private final JLabel posLabel;
     private final JLabel contentLabel;
 
-    public PDFViewer(String title, PDFFile pdfFile) {
+    public PDFViewer(final String title, final PDFFile pdfFile) {
         super(title);
 
         this.pdfFile = pdfFile;
@@ -60,7 +60,7 @@ public class PDFViewer extends JFrame {
         final JButton backwardButton = new JButton("<");
         backwardButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 PDFViewer.this.backward();
             }
         });
@@ -68,7 +68,7 @@ public class PDFViewer extends JFrame {
         final JButton forwardButton = new JButton(">");
         forwardButton.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(final ActionEvent e) {
                 PDFViewer.this.forward();
             }
         });
@@ -116,7 +116,7 @@ public class PDFViewer extends JFrame {
         width *= res;
         height *= res;
 
-        final Image image = page.getImage((int) width,(int) height, r2d, null, true, true);
+        final Image image = page.getImage((int) width, (int) height, r2d, null, true, true);
         this.contentLabel.setIcon(new ImageIcon(image));
         this.contentLabel.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
 

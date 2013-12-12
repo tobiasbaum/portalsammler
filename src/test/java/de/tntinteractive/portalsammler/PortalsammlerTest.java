@@ -33,9 +33,9 @@ import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SourceSettings;
 import de.tntinteractive.portalsammler.engine.StorageLayer;
 import de.tntinteractive.portalsammler.engine.StubStorage;
-import de.tntinteractive.portalsammler.gui.UserInteraction;
+import de.tntinteractive.portalsammler.engine.UserInteraction;
 
-public class PortalsammlerTest {
+public final class PortalsammlerTest {
 
     @Test
     public void testCreationOfStore() throws Exception {
@@ -43,7 +43,7 @@ public class PortalsammlerTest {
         final ValueWrapper<Boolean> shown = ValueWrapper.create(Boolean.FALSE);
         final UserInteraction stubGui = new FailAllGui() {
             @Override
-            public void showGeneratedPassword(String key) {
+            public void showGeneratedPassword(final String key) {
                 shown.set(Boolean.TRUE);
             }
         };
@@ -65,7 +65,7 @@ public class PortalsammlerTest {
 
         final UserInteraction stubGui = new FailAllGui() {
             @Override
-            public String askForPassword(StorageLayer storeDirectory) {
+            public String askForPassword(final StorageLayer storeDirectory) {
                 return CryptoHelper.keyToString(key);
             }
         };
@@ -80,7 +80,7 @@ public class PortalsammlerTest {
         final StubStorage stubStorage = new StubStorage(true);
         final UserInteraction stubGui = new FailAllGui() {
             @Override
-            public String askForPassword(StorageLayer storeDirectory) {
+            public String askForPassword(final StorageLayer storeDirectory) {
                 return null;
             }
         };

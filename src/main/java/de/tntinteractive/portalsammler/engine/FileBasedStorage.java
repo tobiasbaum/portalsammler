@@ -28,21 +28,21 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class FileBasedStorage implements StorageLayer {
+public final class FileBasedStorage implements StorageLayer {
 
     private final File dir;
 
-    public FileBasedStorage(String directory) {
+    public FileBasedStorage(final String directory) {
         this.dir = new File(directory);
     }
 
     @Override
-    public InputStream openInputStream(String name) throws IOException {
+    public InputStream openInputStream(final String name) throws IOException {
         return new FileInputStream(new File(this.dir, name));
     }
 
     @Override
-    public OutputStream openOutputStream(String name) throws IOException {
+    public OutputStream openOutputStream(final String name) throws IOException {
         return new FileOutputStream(new File(this.dir, name));
     }
 
@@ -64,7 +64,7 @@ public class FileBasedStorage implements StorageLayer {
     }
 
     @Override
-    public boolean fileExists(String name) {
+    public boolean fileExists(final String name) {
         return new File(this.dir, name).exists();
     }
 
@@ -78,7 +78,7 @@ public class FileBasedStorage implements StorageLayer {
     }
 
     @Override
-    public void delete(String name) throws IOException {
+    public void delete(final String name) throws IOException {
         final boolean success = new File(this.dir, name).delete();
         if (!success) {
             throw new IOException(name + " konnte nicht gelöscht werden!");
@@ -86,7 +86,7 @@ public class FileBasedStorage implements StorageLayer {
     }
 
     @Override
-    public void rename(String oldName, String newName) throws IOException {
+    public void rename(final String oldName, final String newName) throws IOException {
         final boolean success = new File(this.dir, oldName).renameTo(new File(this.dir, newName));
         if (!success) {
             throw new IOException(oldName + " konnte nicht in " + newName + " umbenannt werden!");

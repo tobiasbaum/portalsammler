@@ -32,18 +32,19 @@ import de.tntinteractive.portalsammler.engine.SecureStore;
 import de.tntinteractive.portalsammler.engine.SettingKey;
 import de.tntinteractive.portalsammler.engine.ShouldNotHappenException;
 import de.tntinteractive.portalsammler.engine.StorageLayer;
+import de.tntinteractive.portalsammler.engine.UserInteraction;
 
-public class Gui implements UserInteraction {
+public final class Gui implements UserInteraction {
 
     @Override
-    public String askForPassword(StorageLayer storeDirectory) {
+    public String askForPassword(final StorageLayer storeDirectory) {
         final GetPasswordDialog dlg = new GetPasswordDialog(storeDirectory.toString());
         dlg.setVisible(true);
         return dlg.getPassword();
     }
 
     @Override
-    public void showGeneratedPassword(String key) {
+    public void showGeneratedPassword(final String key) {
         new GeneratedPasswordDialog(this, key).setVisible(true);
     }
 
@@ -70,18 +71,18 @@ public class Gui implements UserInteraction {
     }
 
     @Override
-    public void showMainGui(SecureStore store) {
+    public void showMainGui(final SecureStore store) {
         if (store.getSettings().getAllSettingIds().isEmpty()) {
             this.showConfigGui(store);
         }
         new MainDialog(this, store).setVisible(true);
     }
 
-    public void showConfigGui(SecureStore store) {
+    public void showConfigGui(final SecureStore store) {
         new SourceConfigDialog(this, store).setVisible(true);
     }
 
-    public void showDocument(DocumentInfo metadata, byte[] content) throws IOException {
+    public void showDocument(final DocumentInfo metadata, final byte[] content) throws IOException {
         switch (metadata.getFormat()) {
         case PDF:
             final PDFFile pdfFile = new PDFFile(ByteBuffer.wrap(content));
@@ -97,7 +98,8 @@ public class Gui implements UserInteraction {
     }
 
     @Override
-    public String askForSetting(SettingKey key) {
-        return JOptionPane.showInputDialog("Bitte geben Sie den Wert für einen fehlenden Parameter ein: " + key.getKeyString());
+    public String askForSetting(final SettingKey key) {
+        return JOptionPane.showInputDialog("Bitte geben Sie den Wert für einen fehlenden Parameter ein: "
+                    + key.getKeyString());
     }
 }

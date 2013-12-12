@@ -25,7 +25,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 
-public class SettingKeyTest {
+public final class SettingKeyTest {
 
     @Test
     public void testHashCode() {

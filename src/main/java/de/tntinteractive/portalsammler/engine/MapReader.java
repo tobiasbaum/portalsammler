@@ -29,15 +29,15 @@ import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
 
-public class MapReader implements Closeable {
+public final class MapReader implements Closeable {
 
     private final BufferedReader reader;
 
-    private MapReader(BufferedReader reader) {
+    private MapReader(final BufferedReader reader) {
         this.reader = reader;
     }
 
-    public static MapReader createFrom(InputStream in) {
+    public static MapReader createFrom(final InputStream in) {
         try {
             return new MapReader(new BufferedReader(new InputStreamReader(in, "UTF-8")));
         } catch (final UnsupportedEncodingException e) {
@@ -62,7 +62,7 @@ public class MapReader implements Closeable {
         return Pair.of(id, map);
     }
 
-    private static String lineToValue(String line) {
+    private static String lineToValue(final String line) {
         if (!line.startsWith(" ")) {
             throw new ShouldNotHappenException("invalid line: " + line);
         }

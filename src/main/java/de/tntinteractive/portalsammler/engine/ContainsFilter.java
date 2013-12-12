@@ -18,16 +18,16 @@
  */
 package de.tntinteractive.portalsammler.engine;
 
-public class ContainsFilter extends DocumentFilter {
+public final class ContainsFilter extends DocumentFilter {
 
     private final String filterString;
 
-    public ContainsFilter(String filterString) {
+    public ContainsFilter(final String filterString) {
         this.filterString = filterString.toLowerCase();
     }
 
     @Override
-    public boolean shallShow(DocumentInfo s) {
+    public boolean shallShow(final DocumentInfo s) {
         return s.getKeywords().toLowerCase().contains(this.filterString)
             || s.getSourceId().toLowerCase().contains(this.filterString);
     }

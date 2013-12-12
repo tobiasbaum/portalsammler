@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class SourceSettingsTest {
+public final class SourceSettingsTest {
 
     @Test
     public void testStoreAndRetrieveValue() {
@@ -54,7 +54,7 @@ public class SourceSettingsTest {
 
     private static final class MissingValueStubGui extends FailAllGui {
         @Override
-        public String askForSetting(SettingKey key) {
+        public String askForSetting(final SettingKey key) {
             return key.getKeyString() + "123";
         }
     }

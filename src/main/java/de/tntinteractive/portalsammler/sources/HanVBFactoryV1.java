@@ -23,7 +23,7 @@ import java.util.List;
 
 import de.tntinteractive.portalsammler.engine.SettingKey;
 
-public class HanVBFactoryV1 extends DocumentSourceFactory {
+public final class HanVBFactoryV1 extends DocumentSourceFactory {
 
     public HanVBFactoryV1() {
         super("Hannoversche Volksbank V1");
@@ -37,7 +37,7 @@ public class HanVBFactoryV1 extends DocumentSourceFactory {
     }
 
     @Override
-    public DocumentSource create(String id) {
+    public DocumentSource create(final String id) {
         return new HanVBSourceV1(id);
     }
 

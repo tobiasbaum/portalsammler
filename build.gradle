@@ -1,39 +1,33 @@
+import org.apache.tools.ant.taskdefs.Delete;
+import org.apache.tools.ant.taskdefs.Zip;
+import org.apache.tools.ant.types.ZipFileSet;
+import org.apache.tools.ant.types.FileSet;
+import org.apache.tools.ant.types.resources.FileResource;
+import groovy.xml.MarkupBuilder;
+
 apply plugin: 'java'
 apply plugin: 'eclipse'
-apply plugin: 'gradle-one-jar'
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.github.rholder:gradle-one-jar:1.0.3'
-    }
-}
+apply plugin: 'application'
+apply plugin: 'checkstyle'
 
 version = '1.0'
 tasks.withType(Compile) {
     options.encoding = 'UTF-8'
 }
 
-jar {
-    manifest {
-        attributes 'Implementation-Title': 'Portalsammler', 'Implementation-Version': version
-    }
-}
-
-task onejar(type: OneJar) {
-    mainClass = 'de.tntinteractive.portalsammler.Portalsammler'
-    mergeManifestFromJar = true
-}
-assemble.dependsOn onejar
+mainClassName = 'de.tntinteractive.portalsammler.Portalsammler'
 
 repositories {
     mavenCentral()
 }
 
+configurations {
+    classycle
+}
+
 dependencies {
-    compile 'org.seleniumhq.selenium:selenium-java:2.37.1', 
+    compile 'org.seleniumhq.selenium:selenium-htmlunit-driver:2.37.1', 
+            'org.seleniumhq.selenium:selenium-support:2.37.1',
             'org.bouncycastle:bcprov-jdk15on:1.49',
             'org.swinglabs:pdf-renderer:1.0.5',
             'com.jgoodies:jgoodies-forms:1.6.0',
@@ -41,5 +35,115 @@ dependencies {
             'com.google.zxing:javase:2.2',
             'com.github.sarxos:webcam-capture:0.3.9'
     testCompile 'junit:junit:4.+'
+    classycle 'org.specs2:classycle:1.4.1'
 }
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Portalsammler', 'Implementation-Version': version, 'Main-Class': project.mainClassName
+    }
+}
+
+
+task noCyclicDependencies(type: JavaExec) {
+    main = 'classycle.dependency.DependencyChecker'
+    classpath = configurations.classycle
+    args '-dependencies=check absenceOfPackageCycles > 1 in *', "${project.buildDir}/classes/main"
+}
+check.dependsOn noCyclicDependencies
+
+
+task mergeJarsIntoOne(dependsOn: installApp) {
+    String libdir = "${project.buildDir}/install/Portalsammler/lib"
+    File output = file("${project.buildDir}/oneSignedJar/${project.name}-${project.version}.tmp.jar")
+    
+    inputs.dir libdir
+    outputs.file output
+    
+    doLast {
+        
+        FileSet sourceJars = ant.fileset(dir : file(libdir)) {
+        }
+        sourceJars.setIncludes("*.jar");
+    
+        ant.zip(destFile: output, 
+                encoding: 'UTF-8',
+                duplicate: 'preserve') {
+            zipfileset(
+                src: file("$libdir/${project.name}-${project.version}.jar"),
+                includes: '**/META-INF/**'
+            );
+            
+            for (FileResource filename in sourceJars) {
+                zipfileset(
+                    src: filename,
+                    excludes: '**/META-INF/**'
+                );
+            }
+        };
+    }
+}
+
+
+task pack200(dependsOn: mergeJarsIntoOne, type: Exec) {
+    String jar = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.tmp.jar";
+    String packgz = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.pack.gz";
+    
+    inputs.file jar
+    outputs.file packgz
+    
+    commandLine Jvm.current().getJavaHome().toString() + '/bin/pack200', packgz, jar
+}
+
+task unpack200(dependsOn: pack200, type: Exec) {
+    String jar = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.jar";
+    String packgz = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.pack.gz";
+    
+    inputs.file packgz
+    outputs.file jar
+    
+    commandLine Jvm.current().getJavaHome().toString() + '/bin/unpack200', packgz, jar
+}
+
+task oneSignedJar(dependsOn: unpack200) {
+//    ant.signjar(
+//      destDir: webstartSignedLibPath,
+//      alias: project.getProperty('jarsign.keystore.alias'),
+//      jar: it,
+//      keystore: project.getProperty('jarsign.keystore.path'),
+//      storepass: project.getProperty('jarsign.keystore.password'),
+//      preservelastmodified: 'true'
+//    )
+}
+
+build.dependsOn oneSignedJar
+
+task createJnlp  {
+    File output = file("${project.buildDir}/oneSignedJar/${project.name}-${project.version}.jnlp")
+    
+    outputs.file output
+    
+    doLast {
+        def out = new FileWriter(output)
+        def b = new MarkupBuilder(out)
+        b.jnlp(id: 'test', border: 0) {
+            information {
+                title('Portalsammler')
+                vendor('Tobias Baum / TNT Interactive')
+                homepage('http://github.com/tobiasbaum/Portalsammler')
+                'offline-allowed'()
+            }
+            security {
+                'all-permissions'()
+            }
+            resources {
+                j2se(version: '7.0')
+                jar(href: "${project.name}-${project.version}.jar")
+            }
+            'application-desc'()
+        }
+        out.close();
+    }
+}
+build.dependsOn createJnlp
 

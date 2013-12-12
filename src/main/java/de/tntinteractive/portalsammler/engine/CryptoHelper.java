@@ -38,23 +38,26 @@ public final class CryptoHelper {
     private CryptoHelper() {
     }
 
-    public static byte[] generateKey(SecureRandom srand) throws NoSuchAlgorithmException {
+    public static byte[] generateKey(final SecureRandom srand) throws NoSuchAlgorithmException {
         final byte[] key = new byte[256 / 8];
         srand.nextBytes(key);
         return key;
     }
 
-    public static CipherInputStream createAesDecryptStream(InputStream is, byte[] key, SecureRandom srand) {
+    public static CipherInputStream createAesDecryptStream(final InputStream is, final byte[] key,
+            final SecureRandom srand) {
         final PaddedBufferedBlockCipher cipher = initAes(key, srand, false);
         return new CipherInputStream(is, cipher);
     }
 
-    public static CipherOutputStream createAesEncryptStream(OutputStream os, byte[] key, SecureRandom srand) {
+    public static CipherOutputStream createAesEncryptStream(final OutputStream os, final byte[] key,
+            final SecureRandom srand) {
         final PaddedBufferedBlockCipher cipher = initAes(key, srand, true);
         return new CipherOutputStream(os, cipher);
     }
 
-    private static PaddedBufferedBlockCipher initAes(byte[] key, SecureRandom srand, boolean forEncryption) {
+    private static PaddedBufferedBlockCipher initAes(final byte[] key, final SecureRandom srand,
+            final boolean forEncryption) {
         final CipherParameters cipherParams = new ParametersWithRandom(new KeyParameter(key), srand);
 
         final AESFastEngine aes = new AESFastEngine();
@@ -63,11 +66,11 @@ public final class CryptoHelper {
         return cipher;
     }
 
-    public static byte[] keyFromString(String pw) {
+    public static byte[] keyFromString(final String pw) {
         return Base64.decodeBase64(pw);
     }
 
-    public static String keyToString(byte[] key) {
+    public static String keyToString(final byte[] key) {
         return Base64.encodeBase64String(key);
     }
 
