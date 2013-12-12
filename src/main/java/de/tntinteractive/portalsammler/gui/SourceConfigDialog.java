@@ -58,6 +58,8 @@ public class SourceConfigDialog extends JDialog {
     private final JComboBox<String> idCombo;
     private final JPanel settingPanel;
 
+    private JButton removeButton;
+
 
     public SourceConfigDialog(Gui gui, SecureStore store) {
         this.setTitle("Quellen-Konfiguration");
@@ -77,9 +79,10 @@ public class SourceConfigDialog extends JDialog {
         });
 
         final PanelBuilder upb = new PanelBuilder(new FormLayout(
-                "fill:p:grow, 4dlu, p", "p"));
+                "fill:p:grow, 4dlu, p, 4dlu, p", "p"));
         upb.add(this.idCombo, CC.xy(1, 1));
         upb.add(this.createNewButton(), CC.xy(3, 1));
+        upb.add(this.createRemoveButton(), CC.xy(5, 1));
 
         this.settingPanel = new JPanel();
 
@@ -185,12 +188,14 @@ public class SourceConfigDialog extends JDialog {
     private void updateIdCombo() {
         this.idCombo.removeAllItems();
         this.idCombo.setEnabled(true);
+        this.removeButton.setEnabled(true);
         final Set<String> allIds = this.workingCopy.getAllSettingIds();
         for (final String id : allIds) {
             this.idCombo.addItem(id);
         }
         if (allIds.isEmpty()) {
             this.idCombo.setEnabled(false);
+            this.removeButton.setEnabled(false);
             this.idCombo.addItem("Noch keine Quellen konfiguriert");
         }
     }
@@ -241,6 +246,27 @@ public class SourceConfigDialog extends JDialog {
         settings.set(SourceFactories.TYPE, factory.getName());
         this.workingCopy.putSettings(id, settings);
         this.updateIdCombo(id);
+    }
+
+    private JButton createRemoveButton() {
+        assert this.removeButton == null;
+        this.removeButton = new JButton("Quelle löschen");
+        this.removeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                SourceConfigDialog.this.removeConfiguration();
+            }
+        });
+        return this.removeButton;
+    }
+
+    private void removeConfiguration() {
+        final String id = (String) this.idCombo.getSelectedItem();
+        if (id == null) {
+            return;
+        }
+        this.workingCopy.removeSettings(id);
+        this.updateIdCombo();
     }
 
 }

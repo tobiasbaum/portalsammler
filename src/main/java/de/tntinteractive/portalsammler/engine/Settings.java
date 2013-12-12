@@ -34,6 +34,10 @@ public class Settings {
         this.settings.put(id, settings);
     }
 
+    public void removeSettings(String id) {
+        this.settings.remove(id);
+    }
+
     public SourceSettings getSettings(String id) {
         return this.settings.get(id);
     }
