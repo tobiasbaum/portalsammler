@@ -161,4 +161,20 @@ public class SecureStoreTest {
         assertFalse(s2.isRead(metadata1));
         assertTrue(s2.isRead(metadata2));
     }
+
+    @Test
+    public void testRecrypt() throws Exception {
+        final SecureRandom srand = new InsecureRandom();
+        final byte[] key1 = CryptoHelper.generateKey(srand);
+        final StorageLayer stubStorage = new StubStorage();
+
+        final SecureStore s1 = SecureStore.createEmpty(stubStorage, srand, key1);
+        final DocumentInfo metadata1 = DocumentInfo.create("id1", DocumentFormat.PDF);
+        s1.storeDocument(metadata1, new byte[] {1, 2, 3, 4, 5});
+        s1.writeMetadata();
+
+        final byte[] key2 = CryptoHelper.generateKey(srand);
+        final SecureStore s2 = s1.recrypt(key2);
+        assertTrue(Arrays.equals(new byte[] {1, 2, 3, 4, 5}, s2.getDocument(metadata1)));
+    }
 }

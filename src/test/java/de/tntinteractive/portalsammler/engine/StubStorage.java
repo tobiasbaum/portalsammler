@@ -24,7 +24,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class StubStorage implements StorageLayer {
@@ -95,6 +97,29 @@ public class StubStorage implements StorageLayer {
     @Override
     public boolean fileExists(String name) {
         return this.exists && this.files.containsKey(name);
+    }
+
+    @Override
+    public List<String> getAllFiles() {
+        return new ArrayList<String>(this.files.keySet());
+    }
+
+    @Override
+    public void delete(String name) throws IOException {
+        if (!this.files.containsKey(name)) {
+            throw new IOException();
+        }
+        this.files.remove(name);
+    }
+
+    @Override
+    public void rename(String oldName, String newName) throws IOException {
+        if (!this.files.containsKey(oldName)) {
+            throw new IOException();
+        }
+        final byte[] bs = this.files.get(oldName);
+        this.files.remove(oldName);
+        this.files.put(newName, bs);
     }
 
 }

@@ -21,6 +21,7 @@ package de.tntinteractive.portalsammler.engine;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.List;
 
 public interface StorageLayer {
 
@@ -33,5 +34,11 @@ public interface StorageLayer {
     public abstract void create() throws IOException;
 
     public abstract boolean fileExists(String name);
+
+    public abstract List<String> getAllFiles();
+
+    public abstract void delete(String name) throws IOException;
+
+    public abstract void rename(String oldName, String newName) throws IOException;
 
 }

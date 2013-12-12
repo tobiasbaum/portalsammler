@@ -37,7 +37,7 @@ import org.bouncycastle.crypto.io.CipherOutputStream;
 
 public class SecureStore {
 
-    private final StorageLayer storage;
+    private StorageLayer storage;
     private final SecureRandom srand;
     private final byte[] key;
     private final int sizeLimit = 1024 * 1024;
@@ -179,10 +179,14 @@ public class SecureStore {
     }
 
     private void saveCurrentBuffer() throws IOException {
-        final OutputStream out = this.storage.openOutputStream(this.getCurrentFilename());
+        this.encryptAndWrite(this.key, this.currentOutputBuffer.toByteArray(), this.getCurrentFilename());
+    }
+
+    private void encryptAndWrite(byte[] encryptionKey, byte[] data, String filename) throws IOException {
+        final OutputStream out = this.storage.openOutputStream(filename);
         try {
-            final CipherOutputStream cipher = CryptoHelper.createAesEncryptStream(out, this.key, this.srand);
-            cipher.write(this.currentOutputBuffer.toByteArray());
+            final CipherOutputStream cipher = CryptoHelper.createAesEncryptStream(out, encryptionKey, this.srand);
+            cipher.write(data);
             cipher.close();
         } finally {
             out.close();
@@ -304,6 +308,48 @@ public class SecureStore {
         final Map<String, String> fileInfo = this.index.getFilePosition(di);
         if (fileInfo != null) {
             fileInfo.remove("u");
+        }
+    }
+
+    public StorageLayer getDirectory() {
+        return this.storage;
+    }
+
+    /**
+     * Verschlüsselt alle Daten neu mit dem übergebenen Schlüssel und löscht die alten Dateien.
+     * Dieser Store darf im Anschluss nicht mehr genutzt werden.
+     * Es wird ein neuer Store mit dem neuen Schlüssel erzeugt und zurückgeliefert.
+     */
+    public SecureStore recrypt(byte[] newKey) throws IOException, GeneralSecurityException {
+        this.createNewFiles(newKey);
+        this.removeOldFiles();
+        this.renameNewFiles();
+
+        final SecureStore newStore = readFrom(this.storage, this.srand, newKey);
+        this.storage = null;
+        return newStore;
+    }
+
+    private void createNewFiles(byte[] newKey) throws IOException {
+        for (final String file : this.storage.getAllFiles()) {
+            final byte[] data = this.readAndDecrypt(file);
+            this.encryptAndWrite(newKey, data, file + ".tmp");
+        }
+    }
+
+    private void removeOldFiles() throws IOException {
+        for (final String file : this.storage.getAllFiles()) {
+            if (!file.endsWith(".tmp")) {
+                this.storage.delete(file);
+            }
+        }
+    }
+
+    private void renameNewFiles() throws IOException {
+        for (final String file : this.storage.getAllFiles()) {
+            if (file.endsWith(".tmp")) {
+                this.storage.rename(file, file.substring(0, file.length() - 4));
+            }
         }
     }
 

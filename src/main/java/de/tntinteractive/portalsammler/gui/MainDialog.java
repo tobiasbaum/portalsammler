@@ -19,6 +19,7 @@
 package de.tntinteractive.portalsammler.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -27,8 +28,11 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -54,6 +58,7 @@ import com.jgoodies.forms.builder.PanelBuilder;
 import com.jgoodies.forms.factories.CC;
 import com.jgoodies.forms.layout.FormLayout;
 
+import de.tntinteractive.portalsammler.engine.CryptoHelper;
 import de.tntinteractive.portalsammler.engine.DocumentFilter;
 import de.tntinteractive.portalsammler.engine.DocumentFilterParser;
 import de.tntinteractive.portalsammler.engine.DocumentInfo;
@@ -68,10 +73,11 @@ public class MainDialog extends JFrame {
     private static final long serialVersionUID = -2309663260423505246L;
 
     private final Gui gui;
-    private final SecureStore store;
     private final JTable table;
     private final JTextField filterField;
     private final JButton pollButton;
+
+    private SecureStore store;
 
     private DocumentFilter currentFilter = DocumentFilter.NO_FILTER;
 
@@ -135,7 +141,7 @@ public class MainDialog extends JFrame {
 
         final ButtonBarBuilder bbb = new ButtonBarBuilder();
         this.pollButton = this.createPollButton();
-        bbb.addButton(this.createConfigButton(), this.pollButton);
+        bbb.addButton(this.pollButton, this.createConfigButton());
 
         final PanelBuilder builder = new PanelBuilder(new FormLayout(
                 "4dlu, fill:pref:grow, 4dlu",
@@ -335,18 +341,50 @@ public class MainDialog extends JFrame {
     }
 
     private JButton createConfigButton() {
-        final JButton button = new JButton("Quellen konfigurieren...");
+        final JButton button = new JButton("Konfiguration...");
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                MainDialog.this.gui.showConfigGui(MainDialog.this.store);
+                final JPopupMenu menu = MainDialog.this.createConfigMenu();
+                final Component source = (Component) e.getSource();
+                menu.show(source, 0, source.getHeight());
             }
         });
         return button;
     }
 
+    private JPopupMenu createConfigMenu() {
+        final JPopupMenu menu = new JPopupMenu();
+
+        final JMenuItem sourceConfig = new JMenuItem("Quellen verwalten...");
+        sourceConfig.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                MainDialog.this.gui.showConfigGui(MainDialog.this.store);
+            }
+        });
+        menu.add(sourceConfig);
+
+        final JMenuItem changePassword = new JMenuItem("Neues Passwort...");
+        changePassword.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+                    MainDialog.this.changePassword();
+                } catch (final GeneralSecurityException ex) {
+                    MainDialog.this.gui.showError(ex);
+                } catch (final IOException ex) {
+                    MainDialog.this.gui.showError(ex);
+                }
+            }
+        });
+        menu.add(changePassword);
+
+        return menu;
+    }
+
     private JButton createPollButton() {
-        final JButton button = new JButton("Abrufen");
+        final JButton button = new JButton("Dokumente abrufen");
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -436,6 +474,29 @@ public class MainDialog extends JFrame {
             this.gui.showError(e);
             return null;
         }
+    }
+
+    private void changePassword() throws GeneralSecurityException, IOException {
+        final SecureRandom srand = new SecureRandom();
+        final byte[] key = CryptoHelper.generateKey(srand);
+        this.gui.showGeneratedPassword(CryptoHelper.keyToString(key));
+
+        while (true) {
+            final String enteredPw = this.gui.askForPassword(this.store.getDirectory());
+            if (enteredPw == null) {
+                //Abbruch durch den Benutzer
+                return;
+            }
+            if (Arrays.equals(key, CryptoHelper.keyFromString(enteredPw))) {
+                //alles OK => ändern kann abgeschlossen werden
+                break;
+            }
+            JOptionPane.showMessageDialog(this, "Das neue Passwort wurde nicht korrekt eingegeben.",
+                    "Falsches Passwort", JOptionPane.ERROR_MESSAGE, null);
+        }
+
+        this.store = this.store.recrypt(key);
+        this.filter();
     }
 
 }

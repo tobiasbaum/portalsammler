@@ -24,14 +24,31 @@ import de.tntinteractive.portalsammler.engine.StorageLayer;
 
 public interface UserInteraction {
 
+    /**
+     * Fragt das Passwort für den übergebenen Store beim Benutzer ab.
+     * Liefert das abgefragte Passwort (in String-Darstellung) oder null, wenn der Benutzer abgebrochen hat.
+     */
     public abstract String askForPassword(StorageLayer storeDirectory);
 
+    /**
+     * Zeigt ein neu erzeugtes Passwort und gibt dem Benutzer die Chance, es zu notieren.
+     */
     public abstract void showGeneratedPassword(String key);
 
+    /**
+     * Zeigt eine Fehlermeldung.
+     */
     public abstract void showError(Throwable e);
 
+    /**
+     * Zeigt die Hauptansicht.
+     */
     public abstract void showMainGui(SecureStore store);
 
+    /**
+     * Fragt eine Einstellung beim Benutzer ab.
+     * Liefert das Ergebnis, oder null, wenn der Benutzer abgebrochen hat.
+     */
     public abstract String askForSetting(SettingKey key);
 
 }

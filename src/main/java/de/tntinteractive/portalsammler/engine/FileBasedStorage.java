@@ -24,6 +24,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 public class FileBasedStorage implements StorageLayer {
 
@@ -63,6 +66,31 @@ public class FileBasedStorage implements StorageLayer {
     @Override
     public boolean fileExists(String name) {
         return new File(this.dir, name).exists();
+    }
+
+    @Override
+    public List<String> getAllFiles() {
+        final String[] list = this.dir.list();
+        if (list == null) {
+            return Collections.emptyList();
+        }
+        return Arrays.asList(list);
+    }
+
+    @Override
+    public void delete(String name) throws IOException {
+        final boolean success = new File(this.dir, name).delete();
+        if (!success) {
+            throw new IOException(name + " konnte nicht gelöscht werden!");
+        }
+    }
+
+    @Override
+    public void rename(String oldName, String newName) throws IOException {
+        final boolean success = new File(this.dir, oldName).renameTo(new File(this.dir, newName));
+        if (!success) {
+            throw new IOException(oldName + " konnte nicht in " + newName + " umbenannt werden!");
+        }
     }
 
 }
