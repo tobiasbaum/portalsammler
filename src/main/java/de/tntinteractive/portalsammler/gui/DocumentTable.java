@@ -24,6 +24,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
+import java.security.GeneralSecurityException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -223,7 +224,10 @@ final class DocumentTable {
             final byte[] content = this.store.getDocument(di);
             this.store.markAsRead(di);
             this.gui.showDocument(di, content);
+            this.store.writeMetadata();
         } catch (final IOException e) {
+            this.gui.showError(e);
+        } catch (final GeneralSecurityException e) {
             this.gui.showError(e);
         }
     }
@@ -241,11 +245,13 @@ final class DocumentTable {
 
             FileUtils.writeByteArrayToFile(chooser.getSelectedFile(), content);
             this.store.markAsRead(di);
-            return false;
+            this.store.writeMetadata();
+        } catch (final GeneralSecurityException e) {
+            this.gui.showError(e);
         } catch (final IOException e) {
             this.gui.showError(e);
-            return false;
         }
+        return false;
     }
 
     private String makeFilenameFor(final DocumentInfo di) {

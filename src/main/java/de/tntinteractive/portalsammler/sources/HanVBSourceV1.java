@@ -49,7 +49,8 @@ public final class HanVBSourceV1 extends DocumentSource {
     @Override
     public Pair<Integer, Integer> poll(final SourceSettings settings, final UserInteraction gui,
             final SecureStore store) throws Exception {
-        final WebDriver driver = this.createDriver("https://www.hanvb.de/ptlweb/WebPortal?bankid=0744");
+        final WebDriver driver =
+                this.createDriver("https://www.hannoversche-volksbank.de/ptlweb/WebPortal?bankid=0744");
 
         final WebElement userField = driver.findElement(By.id("vrkennungalias"));
         userField.sendKeys(settings.get(USER, gui));

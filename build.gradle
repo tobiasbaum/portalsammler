@@ -16,6 +16,7 @@ tasks.withType(Compile) {
 }
 
 mainClassName = 'de.tntinteractive.portalsammler.Portalsammler'
+sourceCompatibility = '1.7'
 
 repositories {
     mavenCentral()
@@ -40,7 +41,11 @@ dependencies {
 
 jar {
     manifest {
-        attributes 'Implementation-Title': 'Portalsammler', 'Implementation-Version': version, 'Main-Class': project.mainClassName
+        attributes 'Implementation-Title': 'Portalsammler', 
+            'Implementation-Version': version, 
+            'Main-Class': project.mainClassName,
+            'Application-Name': 'Portalsammler',
+            'Permissions': 'all-permissions'
     }
 }
 
@@ -85,38 +90,48 @@ task mergeJarsIntoOne(dependsOn: installApp) {
 }
 
 
-task pack200(dependsOn: mergeJarsIntoOne, type: Exec) {
-    String jar = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.tmp.jar";
-    String packgz = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.pack.gz";
+task repack200(dependsOn: mergeJarsIntoOne, type: Exec) {
+    String injar = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.tmp.jar";
+    String outjar = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.repacked.jar";
+    
+    inputs.file injar
+    outputs.file outjar
+    
+    commandLine System.getenv('JAVA_HOME') + '/bin/pack200', '--repack', outjar, injar
+}
+
+task signJar(dependsOn: repack200, type: Exec) {
+    String injar = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.repacked.jar";
+    String outjar = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.jar";
+    
+    inputs.file injar
+    outputs.file outjar
+    
+    commandLine System.getenv('JAVA_HOME') + '/bin/jarsigner', 
+        '-storetype', 'pkcs12',
+        '-keystore', "${project.buildDir}/../../codesigning.p12", 
+        '-tsa', 'http://time.certum.pl',
+        '-signedjar', outjar,
+        injar,
+        'root ca id von tobias baum'
+        
+    doFirst {
+        String password = javax.swing.JOptionPane.showInputDialog('Enter keystore password');
+        args '-storepass', password
+    }
+}
+
+task pack200(dependsOn: signJar, type: Exec) {
+    String jar = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.jar";
+    String packgz = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.jar.pack.gz";
     
     inputs.file jar
     outputs.file packgz
     
-    commandLine Jvm.current().getJavaHome().toString() + '/bin/pack200', packgz, jar
+    commandLine System.getenv('JAVA_HOME') + '/bin/pack200', packgz, jar
 }
 
-task unpack200(dependsOn: pack200, type: Exec) {
-    String jar = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.jar";
-    String packgz = "${project.buildDir}/oneSignedJar/${project.name}-${project.version}.pack.gz";
-    
-    inputs.file packgz
-    outputs.file jar
-    
-    commandLine Jvm.current().getJavaHome().toString() + '/bin/unpack200', packgz, jar
-}
-
-task oneSignedJar(dependsOn: unpack200) {
-//    ant.signjar(
-//      destDir: webstartSignedLibPath,
-//      alias: project.getProperty('jarsign.keystore.alias'),
-//      jar: it,
-//      keystore: project.getProperty('jarsign.keystore.path'),
-//      storepass: project.getProperty('jarsign.keystore.password'),
-//      preservelastmodified: 'true'
-//    )
-}
-
-build.dependsOn oneSignedJar
+build.dependsOn pack200
 
 task createJnlp  {
     File output = file("${project.buildDir}/oneSignedJar/${project.name}-${project.version}.jnlp")
@@ -126,7 +141,7 @@ task createJnlp  {
     doLast {
         def out = new FileWriter(output)
         def b = new MarkupBuilder(out)
-        b.jnlp(id: 'test', border: 0) {
+        b.jnlp(id: 'portalsammler', border: 0) {
             information {
                 title('Portalsammler')
                 vendor('Tobias Baum / TNT Interactive')
@@ -137,7 +152,7 @@ task createJnlp  {
                 'all-permissions'()
             }
             resources {
-                j2se(version: '7.0')
+                j2se(version: '7.0+')
                 jar(href: "${project.name}-${project.version}.jar")
             }
             'application-desc'()
