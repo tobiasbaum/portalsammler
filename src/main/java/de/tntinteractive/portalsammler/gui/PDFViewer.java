@@ -117,10 +117,12 @@ public class PDFViewer extends JFrame {
         height *= res;
 
         final Image image = page.getImage((int) width, (int) height, r2d, null, true, true);
-        this.contentLabel.setIcon(new ImageIcon(image));
-        this.contentLabel.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
-
+        final ImageIcon icon = new ImageIcon(image);
+        this.contentLabel.setIcon(icon);
         this.validate();
+
+        this.contentLabel.scrollRectToVisible(
+                new Rectangle(icon.getIconWidth() / 4, icon.getIconHeight() / 4, 1, 1));
     }
 
 }

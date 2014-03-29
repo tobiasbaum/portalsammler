@@ -33,6 +33,7 @@ import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.ImmediateRefreshHandler;
 import com.gargoylesoftware.htmlunit.Page;
 import com.gargoylesoftware.htmlunit.RefreshHandler;
@@ -84,12 +85,14 @@ public abstract class DocumentSource {
     }
 
     protected final WebDriver createDriver(final String url) {
-        final HtmlUnitDriver driver = new HtmlUnitDriver(true) {
+        final HtmlUnitDriver driver = new HtmlUnitDriver(BrowserVersion.INTERNET_EXPLORER_10) {
             {
                 this.getWebClient().setRefreshHandler(new AllOrNothingRefreshHandler());
             }
         };
 
+
+        driver.setJavascriptEnabled(true);
         driver.manage().timeouts().implicitlyWait(WAIT_TIME, TimeUnit.SECONDS);
         driver.get(url);
         return driver;
